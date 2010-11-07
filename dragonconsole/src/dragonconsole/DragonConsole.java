@@ -319,10 +319,7 @@ public class DragonConsole extends JFrame implements KeyListener {
         setOutputStyles();
         printDefault();
         centerWindow();
-        append("&rbThe console is currenlty in a non-working state, issues arose and the project had to be reset.\n"
-                + "Version 3.0.0 BETA is on it's way and should be fully functional soon!\n"
-                + "Sorry if this has caused any inconvieniences.\n"
-                + " &wb--&CbAuthor, Brandon E Buck, Nov 6, 2010");
+        append("&CbTest Protected: [%i10+d;]");
     }
 
     /** Prints a default message that's stored in a text file in the .jar.
@@ -514,14 +511,19 @@ public class DragonConsole extends JFrame implements KeyListener {
                     if (outputToProcess.charAt(i + 1) == 'i') {
                         hasInput = true;
                         String inputCommand = outputToProcess.substring(i, outputToProcess.indexOf(';', i) + 1);
-                        if (inputControl.setInputStyle(inputCommand, i - processedOffset)) {
+                        if (inputControl.setInputStyle(inputCommand)) {
                             
                             print(processed, style); // Print what's been processed in it's color
+                            inputControl.setRangeStart(outputStyledDocument.getLength());
                             print(inputControl.getInputRangeString(), defaultColor); // Print the blank space if the input is not infinite
                             
                             processed = ""; // Clear processed for the next series of colored text
-                        } else
+                        } else {
                             outputToProcess = ""; // Clear out the output to process if input is infinite, which means anything after the input string is ignored.
+                            print(processed, style);
+                            processed = "";
+                            inputControl.setRangeStart(outputStyledDocument.getLength());
+                        }
 
                         i = outputToProcess.indexOf(';', i);
                     }
@@ -544,7 +546,7 @@ public class DragonConsole extends JFrame implements KeyListener {
      * the document.
      */
     private void setConsoleCaretPosition() {
-        int caretLocation = inputControl.inputRangeStart();
+        int caretLocation = inputControl.getInputRangeStart();
         System.out.println("caretLocation = " + caretLocation);
         if (caretLocation > -1)
             outputPane.setCaretPosition(caretLocation);
@@ -615,7 +617,7 @@ public class DragonConsole extends JFrame implements KeyListener {
 
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            if ((!inputFieldNewLine) || !(e.isShiftDown())) {
+            /*if ((!inputFieldNewLine) || !(e.isShiftDown())) {
                 e.consume();
 
                 String input = inputArea.getText();
@@ -632,7 +634,11 @@ public class DragonConsole extends JFrame implements KeyListener {
                 currentPreviousEntry = previousEntries.size();
             } else {
                 inputArea.append("\n");
-            }
+            }*/
+
+            e.consume();
+            String input = inputControl.getInput();
+            append("\n&CbINPUT: &ob" + input + "\n\n &Cb::> %i;");
         }
 
         if ((e.getKeyCode() == KeyEvent.VK_RIGHT) && e.isShiftDown()) {
@@ -741,6 +747,14 @@ public class DragonConsole extends JFrame implements KeyListener {
             inputAttr = newInputAttr;
         }
 
+        public void setRangeStart(int newRangeStart) {
+            if (isReceivingInput) {
+                rangeStart = newRangeStart;
+                if (rangeEnd > 0)
+                    rangeEnd += newRangeStart;
+            }
+        }
+
         /** Passed an input string, breaking it apart and setting the input controller to fit the input constraints.
          * Passed an input String from the console and breaks it down and sets
          * up the input controller according the input string passed to it.
@@ -759,13 +773,17 @@ public class DragonConsole extends JFrame implements KeyListener {
          *
          * If there is an error, or the minimum is passed ("%i;") then input is
          * treated as "UNLIMITED"
+         *
+         * <strong>IMPORTANT: The Start position MUST be specified after the
+         * input style is set. This was added in to give the console more
+         * control as to where the cursor needs to default for input control and
+         * make input ranges MUCH more accurate.</strong>
          * @param newInputStyle String containing the new input style for the input controller.
-         * @param startPosition The position in the console in which this input will begin.
          * @return Returns true if all text after the input command should be ignored (if the input has an unlimited Range);
          */
-        public boolean setInputStyle(String newInputStyle, int startPosition) {
-            rangeStart = startPosition;
-            rangeEnd = startPosition;
+        public boolean setInputStyle(String newInputStyle) {
+            rangeStart = -1;
+            rangeEnd = 0;
             protect = false;
             input = new DCString("");
             isReceivingInput = true;
@@ -787,8 +805,7 @@ public class DragonConsole extends JFrame implements KeyListener {
                     }
 
                     if (inputStyle.length() > 0) {
-                        int range = Integer.parseInt(inputStyle);
-                        rangeEnd = rangeStart + range;
+                        rangeEnd = Integer.parseInt(inputStyle);
 
                         input.set(getInputRangeString());
 
@@ -811,7 +828,7 @@ public class DragonConsole extends JFrame implements KeyListener {
          * setting the outputPane's Caret position.
          * @return The start position of the input, if not currently receiving input then -1
          */
-        public int inputRangeStart() {
+        public int getInputRangeStart() {
             if (isReceivingInput)
                 return rangeStart;
             else
@@ -846,7 +863,11 @@ public class DragonConsole extends JFrame implements KeyListener {
         public String getInputRangeString() {
             if (isReceivingInput && rangeEnd > 0) {
                 String inputRangeString = "";
-                for (int x = rangeStart; x < rangeEnd; x++)
+                int counter = 0;
+                if (rangeStart >= 0)
+                    counter = rangeStart;
+
+                for (int x = counter; x < rangeEnd; x++)
                     inputRangeString += " ";
 
                 return inputRangeString;
@@ -871,6 +892,11 @@ public class DragonConsole extends JFrame implements KeyListener {
             return isReceivingInput;
         }
 
+        public String getInput() {
+            isReceivingInput = false;
+            return input.get().trim();
+        }
+
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
             fb.insertString(offset, string, attr);
@@ -878,15 +904,25 @@ public class DragonConsole extends JFrame implements KeyListener {
 
         @Override
         public void replace(FilterBypass fb, int offset, int length, String string, AttributeSet attr) throws BadLocationException {
-            if (isReceivingInput) {
+            if (isReceivingInput && rangeStart > 0) {
                 if (offset >= rangeStart) {
                     if (!isInfiniteInput() && (offset + 1) <= rangeEnd) {
-                        if (protect)
-                            fb.replace(offset, 1, protectedChar, inputAttr);
-                        else
-                            fb.replace(offset, 1, string, inputAttr);
+                        boolean inserted = input.rangeInsert((offset - rangeStart), string);
                         
-                        input.replace((offset - rangeStart), 1, string);
+                        if (inserted) {
+                            if (protect)
+                                fb.replace(offset, length, protectedChar, inputAttr);
+                            else
+                                fb.replace(offset, length, string, inputAttr);
+
+                            if (input.endIsEmpty())
+                                fb.remove(rangeEnd - 1, 1);
+                            else
+                                fb.remove(rangeEnd, 1);
+                        } else
+                            Toolkit.getDefaultToolkit().beep();
+                        
+                        
                         
                     } else if (isInfiniteInput()) {
                         if (protect)
@@ -894,17 +930,20 @@ public class DragonConsole extends JFrame implements KeyListener {
                         else
                             fb.replace(offset, length, string, inputAttr);
 
-                        input.append(string);
-                    }
-                }
-            }
+                        input.replace((offset - rangeStart), length, string);
+                    } else
+                        Toolkit.getDefaultToolkit().beep();
+                } else
+                    Toolkit.getDefaultToolkit().beep();
+            } else
+                Toolkit.getDefaultToolkit().beep();
         }
 
         @Override
         public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-            if (isReceivingInput) {
+            if (isReceivingInput && rangeStart > 0) {
                 if (!(offset < rangeStart)) {
-                    if (rangeEnd > -1) {
+                    if (!isInfiniteInput()) {
                         fb.remove(offset, length);
                         fb.insertString((rangeEnd - 1), " ", inputAttr);
 
@@ -918,8 +957,10 @@ public class DragonConsole extends JFrame implements KeyListener {
                         input.rangeRemove((offset - rangeStart), length);
                     else
                         input.remove((offset - rangeStart), length);
-                }
-            }
+                } else
+                    Toolkit.getDefaultToolkit().beep();
+            } else
+                Toolkit.getDefaultToolkit().beep();
         }
     }
 }

@@ -81,13 +81,14 @@ public class DCString {
         }
     }
 
-    public boolean rangeReplace(int location, int length, String s) {
-        if (location < this.s.length() && (location + length) <= this.s.length()) {
-            int end = location + length;
+    public boolean rangeInsert(int location, String s) {
+        if (location < this.s.length() && endIsEmpty()) {
             String before = this.s.substring(0, location);
-            String after = this.s.substring(end);
-            set(before + s + after);
-            System.out.println("\"" + this.s + "\" - RANGE REPLACE");
+            String after = this.s.substring(location, this.s.length() - 1);
+            this.set(before + s + after);
+
+            System.out.println("\"" + this.s + "\" - RANGE INSERT");
+            return true;
         }
 
         return false;
@@ -100,7 +101,8 @@ public class DCString {
             String after = this.s.substring(end);
             set(before + s + after);
             System.out.println("\"" + this.s + "\" - REPLACE");
-        }
+        } else
+            append(s);
     }
 
     public void set(String s) {
@@ -109,6 +111,14 @@ public class DCString {
 
     public String get() {
         return this.s;
+    }
+
+    public boolean endIsEmpty() {
+        return (this.s.charAt(length() - 1) == ' ');
+    }
+
+    public int length() {
+        return this.s.length();
     }
 
     public String toString() {
