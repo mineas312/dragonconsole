@@ -319,7 +319,7 @@ public class DragonConsole extends JFrame implements KeyListener {
         setOutputStyles();
         printDefault();
         centerWindow();
-        append("&CbTest Protected: [%i10+d;]");
+        append("&CbTest Protected: [%i10+;]");
     }
 
     /** Prints a default message that's stored in a text file in the .jar.
