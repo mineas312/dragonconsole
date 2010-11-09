@@ -88,28 +88,35 @@ public class DragonConsole extends JFrame implements KeyListener {
     private static final String VERSION = "3"; // Version Number
     private static final String SUB_VER = "0"; // Sub-version or minor change
     private static final String BUG_FIX = "0"; // Bug fix for current version/minor change
+    private static final String VER_TAG = "b"; // Alpha/Beta tag, blank for non-alpha/beta releases.
 
-    // GUI Varaiables
+    // GUI
     private int width = 800;
     private int height = 600;
-    private double dividerPercentage = 0.75;
-    private int dividerLocation = 0;
     private JTextPane outputPane;
     private JTextArea inputArea;
-    private Font consoleFont = new Font("Monospaced", Font.BOLD, 14);
     private StyledDocument outputStyledDocument;
+    private String defaultTitle = "DragonConsole - " + getVersion();
+
+    // Console
+    private CommandProcessor commandProcessor = null;
+    private InputController inputControl;
+
+    // Console GUI (fonts/colors/etc)
+    private Font consoleFont = new Font("Monospaced", Font.BOLD, 14);
+    private PromptPanel consolePrompt = new PromptPanel(" :> ");
+    private ArrayList<TextColor> textColors;
+
+    // Input Utility
     private ArrayList<String> previousEntries;
     private int numberOfPreviousEntries;
     private int currentPreviousEntry;
-    private CommandProcessor commandProcessor = null;
-    private String defaultTitle = "DragonConsole - " + getVersion();
-    private PromptPanel consolePrompt = new PromptPanel(" :>");
-    private InputController inputControl;
 
     // Flags
     private boolean inputFieldNewLine;
     private boolean printDefaultMessage = true;
     private boolean useDefaultStyle = true;
+    private boolean useInlineInput = true;
 
     // Default text variables
     private String defaultColor = "xb";
@@ -118,7 +125,7 @@ public class DragonConsole extends JFrame implements KeyListener {
     private String inputColor = "xb";
     private char colorCodeChar = '&';
 
-    // Default color variables
+    // Default Console Colors
     private Color defaultBackground = Color.BLACK;
     private Color defaultForeground = Color.GRAY.brighter(); // GRAY is too dark personally
     private Color defaultCaret = Color.GRAY.brighter();
@@ -310,7 +317,7 @@ public class DragonConsole extends JFrame implements KeyListener {
         inputPanel.add(inputArea, BorderLayout.CENTER);
 
         JPanel splitPane = new JPanel(new BorderLayout());
-        splitPane.add(outputPane, BorderLayout.CENTER);
+        splitPane.add(outputScrollPane, BorderLayout.CENTER);
         splitPane.add(inputPanel, BorderLayout.SOUTH);
 
         add(splitPane);
@@ -343,8 +350,11 @@ public class DragonConsole extends JFrame implements KeyListener {
      * @param newCommandProcessor The new command processor that this console should send input to.
      */
     public void setCommandProcessor(CommandProcessor newCommandProcessor) {
+        if (commandProcessor != null)
+            commandProcessor.uninstall();
+
         commandProcessor = newCommandProcessor;
-        commandProcessor.setDragonConsole(this);
+        commandProcessor.install(this);
     }
 
     /** Sets the character used to designate a two character color code.
@@ -400,11 +410,49 @@ public class DragonConsole extends JFrame implements KeyListener {
         this.systemColor = systemColor;
     }
 
+    private void fillConsoleColors() {
+        textColors = new ArrayList<TextColor>();
+        
+        addTextColor('r', Color.RED); // Red
+        addTextColor('R', Color.RED.darker()); // Dark Red
+        addTextColor('l', Color.BLUE); // Blue
+        addTextColor('L', Color.BLUE.darker()); // Dark Blue
+        addTextColor('g', Color.GREEN); // Green
+        addTextColor('G', Color.GREEN.darker()); // Dark Green
+        addTextColor('y', Color.YELLOW); // Yellow
+        addTextColor('Y', Color.YELLOW.darker()); // Dark Yellow
+        addTextColor('x', Color.GRAY.brighter()); // Gray
+        addTextColor('X', Color.GRAY); // Dark Gray
+        addTextColor('c', Color.CYAN); // Cyan
+        addTextColor('C', Color.CYAN.darker()); // Dark Cyan
+        addTextColor('o', Color.ORANGE); // Orange
+        addTextColor('O', Color.ORANGE.darker()); // Orange
+        addTextColor('p', new Color(128, 0, 255)); // Purple
+        addTextColor('P', new Color(128, 0, 255).darker()); // Dark Purple
+        addTextColor('d', new Color(241, 234, 139)); // Gold
+        addTextColor('D', new Color(241, 234, 139).darker()); // Dark Gold
+
+        // Black and White -- Single colors (no dark version)
+        addTextColor('b', Color.BLACK); // Black
+        addTextColor('w', Color.WHITE); // White
+    }
+
+    public void addTextColor(char code, Color color) {
+        TextColor newColor = new TextColor(code, color);
+        textColors.add(newColor);
+
+        outputStyledDocument =
+                DocumentStyler.addNewColor(outputStyledDocument, consoleFont, newColor, textColors);
+    }
+
     /** Adds all the output styles to outputFields Styled Document.
      */
     private void setOutputStyles() {
+        fillConsoleColors();
+
         outputStyledDocument =
-                DocumentStyler.styleDocument(outputStyledDocument, consoleFont);
+                DocumentStyler.styleDocument(outputStyledDocument, consoleFont,
+                textColors);
 
         setInputAttribute();
     }
@@ -418,7 +466,7 @@ public class DragonConsole extends JFrame implements KeyListener {
      * @return Returns the version string for use with anything.
      */
     public String getVersion() {
-        return "v" + VERSION + "." + SUB_VER + "." + BUG_FIX;
+        return "v" + VERSION + "." + SUB_VER + "." + BUG_FIX + VER_TAG;
     }
 
     /**
@@ -664,47 +712,6 @@ public class DragonConsole extends JFrame implements KeyListener {
     }
 
     public void keyReleased(KeyEvent e) { }
-
-    private class PromptPanel extends JPanel {
-        private JLabel promptLabel;
-
-        public PromptPanel(String prompt) {
-            promptLabel = new JLabel(prompt);
-            promptLabel.setOpaque(false);
-            setLayout(new BorderLayout());
-            add(promptLabel, BorderLayout.NORTH);
-        }
-
-        public void setPrompt(String newPrompt) {
-            promptLabel.setText(newPrompt);
-        }
-
-        public String getPrompt() {
-            return promptLabel.getText();
-        }
-
-        public void setPromptFont(Font font) {
-            promptLabel.setFont(font);
-            promptLabel.revalidate();
-            promptLabel.repaint();
-        }
-
-        public void setPromptForeground(Color c) {
-            promptLabel.setForeground(c);
-            promptLabel.revalidate();
-            promptLabel.repaint();
-        }
-    }
-
-    private class DCDocumentListener implements DocumentListener {
-        public DCDocumentListener() {
-            super();
-        }
-
-        public void insertUpdate(DocumentEvent e) { }
-        public void removeUpdate(DocumentEvent e) { }
-        public void changedUpdate(DocumentEvent e) { }
-    }
 
     /** Controls Input, more Documentation later.
      * @author Brandon Buck
