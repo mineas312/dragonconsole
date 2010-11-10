@@ -32,10 +32,10 @@ package dragonconsole.util;
  * @author Brandon E Buck
  * @version 1.0
  */
-public class DCString {
+public class InputString {
     private String s;
 
-    public DCString(String s) {
+    public InputString(String s) {
         this.s = s;
     }
 
@@ -45,7 +45,7 @@ public class DCString {
     }
 
     public void insert(int location, String s) {
-        if (location < this.s.length()) {
+        if (location <= this.s.length()) {
             String before = this.s.substring(0, location);
             String after = this.s.substring(location);
             this.set(before + s + after);
@@ -63,7 +63,8 @@ public class DCString {
                 after = this.s.substring(end);
 
             set(before + after);
-            System.out.println("\"" + this.s + "\" - REMOVE");
+
+            debug.Debug.print("\"" + this.s + "\" - REMOVE");
         }
     }
 
@@ -77,7 +78,8 @@ public class DCString {
                 after = this.s.substring(end);
 
             set(before + after + " ");
-            System.out.println("\"" + this.s + "\" - RANGE REMOVE");
+
+            debug.Debug.print("\"" + this.s + "\" - RANGE REMOVE");
         }
     }
 
@@ -87,7 +89,7 @@ public class DCString {
             String after = this.s.substring(location, this.s.length() - 1);
             this.set(before + s + after);
 
-            System.out.println("\"" + this.s + "\" - RANGE INSERT");
+            debug.Debug.print("\"" + this.s + "\" - RANGE INSERT");
             return true;
         }
 
@@ -100,7 +102,8 @@ public class DCString {
             String before = this.s.substring(0, location);
             String after = this.s.substring(end);
             set(before + s + after);
-            System.out.println("\"" + this.s + "\" - REPLACE");
+
+            debug.Debug.print("\"" + this.s + "\" - REPLACE");
         } else
             append(s);
     }
@@ -121,6 +124,7 @@ public class DCString {
         return this.s.length();
     }
 
+    @Override
     public String toString() {
         return this.s;
     }

@@ -56,7 +56,7 @@ public class CommandProcessor {
      * @param command The String that might possibly contain a command.
      */
     public void processCommand(String inputToProcess) {
-        output(inputToProcess);
+        output("\n&obINPUT: &pb" + inputToProcess + "\n&ob>> ");
     }
 
     /** Outputs the text sent by sending it to the console.

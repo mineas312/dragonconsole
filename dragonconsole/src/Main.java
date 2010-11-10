@@ -25,10 +25,18 @@ import java.awt.Color;
 
 public class Main {
     public static void main(String[] args) {
-        DragonConsole console = new DragonConsole();
-        CommandProcessor processor = new CommandProcessor();
-        console.setCommandProcessor(processor);
-        console.setVisible(true);
-        console.addTextColor('m', Color.MAGENTA);
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                DragonConsole console = new DragonConsole(false);
+                DragonConsoleFrame frame = new DragonConsoleFrame(console);
+                CommandProcessor processor = new CommandProcessor();
+                console.setCommandProcessor(processor);
+                console.addTextColor('m', Color.MAGENTA);
+                console.setInputColor("mb");
+                console.append("&ob>> ");
+
+                frame.setVisible(true);
+            }
+        });
     }
 }

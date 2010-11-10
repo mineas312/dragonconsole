@@ -25,12 +25,12 @@ package dragonconsole;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.event.DocumentEvent;
+import javax.swing.event.*;
 import javax.swing.text.*;
 import java.util.ArrayList;
-import javax.swing.event.DocumentListener;
 import dragonconsole.util.*;
 import dragonconsole.file.*;
+import java.awt.datatransfer.DataFlavor;;
 
 /**
  * DragonConsole is a console mimic designed to give Java programmers a RTF
@@ -58,9 +58,11 @@ import dragonconsole.file.*;
  * Purple       p
  * Dark Purple  P
  * Gold         d
+ * Dark Gold    D
  * Black        b
  * White        w
  * Orange       o
+ * Dark Orange  O
  * </pre><br />
  * Built in Defaults:<br />
  * - Color Code char: '&'<br />
@@ -74,7 +76,7 @@ import dragonconsole.file.*;
  * - Default System Message color: 'rw'<br />
  * <br /><br/>
  * Additional Features include arrow key navigation for previous entered
- * commands (default stored is the last 10, but this is configuarable).
+ * commands (default stored is the last 10, but this is configurable).
  * <br /><br />
  * Configurable controls for adding a new line in the input box with the "Enter"
  * key or having it just send the input to the output window.
@@ -83,7 +85,7 @@ import dragonconsole.file.*;
  * @since October 30, 2009
  * @version 3.0.0
  */
-public class DragonConsole extends JFrame implements KeyListener {
+public class DragonConsole extends JPanel implements KeyListener, CaretListener {
     // Version variables
     private static final String VERSION = "3"; // Version Number
     private static final String SUB_VER = "0"; // Sub-version or minor change
@@ -91,12 +93,11 @@ public class DragonConsole extends JFrame implements KeyListener {
     private static final String VER_TAG = "b"; // Alpha/Beta tag, blank for non-alpha/beta releases.
 
     // GUI
-    private int width = 800;
-    private int height = 600;
-    private JTextPane outputPane;
+    private JTextPane consolePane;
     private JTextArea inputArea;
-    private StyledDocument outputStyledDocument;
-    private String defaultTitle = "DragonConsole - " + getVersion();
+    private StyledDocument consoleStyledDocument;
+    private String title = "DragonConsole - " + getVersion();
+    private JScrollPane consoleScrollPane;
 
     // Console
     private CommandProcessor commandProcessor = null;
@@ -104,7 +105,7 @@ public class DragonConsole extends JFrame implements KeyListener {
 
     // Console GUI (fonts/colors/etc)
     private Font consoleFont = new Font("Monospaced", Font.BOLD, 14);
-    private PromptPanel consolePrompt = new PromptPanel(" :> ");
+    private PromptPanel consolePrompt = new PromptPanel(">> ");
     private ArrayList<TextColor> textColors;
 
     // Input Utility
@@ -113,10 +114,11 @@ public class DragonConsole extends JFrame implements KeyListener {
     private int currentPreviousEntry;
 
     // Flags
-    private boolean inputFieldNewLine;
-    private boolean printDefaultMessage = true;
-    private boolean useDefaultStyle = true;
-    private boolean useInlineInput = true;
+    private boolean inputFieldNewLine = true; // If SHIFT+ENTER makes a new line or not
+    private boolean printDefaultMessage = true; // Print the DragonConsole logo
+    private boolean useInlineInput = true; // Determines if the cnosole uses inline input or not
+    private boolean ignoreInput = false; // Allows the Programmer to Disble input
+    private boolean inputCarryOver = true; // If output is sent while input is being receivied, saves input for next input area
 
     // Default text variables
     private String defaultColor = "xb";
@@ -133,46 +135,191 @@ public class DragonConsole extends JFrame implements KeyListener {
     private Color defaultMacForeground = Color.BLACK;
     private Color defaultMacCaret = Color.BLACK;
 
-    /** Default Constructor with the default values for the Console.
-     * This constructor sets all the default values:<br />
-     * <pre>Title:       "DragonConsole - " + Version Number
-     * Size:        800x600
-     * Location:    Centered</pre>
+    /** Default Constructor uses all the default values.
      */
     public DragonConsole() {
         super();
-        this.setTitle(this.defaultTitle);
+        this.setSize(800, 600);
+        this.title = "DragonConsole " + getVersion();
+        this.useInlineInput = true;
+        this.printDefaultMessage = false;
+
         this.initializeConsole();
     }
 
-    /** Default constructor, except tells the console not to print default message.
+    /** Creates a Console with the specified input method.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
      */
-    public DragonConsole(boolean printDefaultMessage) {
+    public DragonConsole(boolean useInlineInput) {
         super();
-        this.printDefaultMessage = printDefaultMessage;
-        this.setTitle(this.defaultTitle);
+        this.setSize(800, 600);
+        this.title = "DragonConsole " + getVersion();
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = false;
+
         this.initializeConsole();
     }
 
-    /** Creates a console with all default values except a custom title.
+    /** Creates a console with the specified input method and specifies whether to print the logo or not.
+     * Tells the console to use either inline input or a text area for input
+     * and whether or not to print the default message (DragonConsole logo).
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
+     */
+    public DragonConsole(boolean useInlineInput, boolean printDefaultMessage) {
+        super();
+        this.setSize(800, 600);
+        this.title = "DragonConsole " + getVersion();
+        this.useInlineInput = true;
+        this.printDefaultMessage = false;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom width and height. 
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     */
+    public DragonConsole(int width, int height) {
+        super();
+        this.setSize(width, height);
+        this.title = "DragonConsole " + this.getVersion();
+        this.useInlineInput = true;
+        this.printDefaultMessage = true;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom width, height, and title.
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     * @param title Title of the Console.
+     */
+    public DragonConsole(int width, int height, String title) {
+        super();
+        this.setSize(width, height);
+        this.title = title;
+        this.useInlineInput = true;
+        this.printDefaultMessage = true;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom width, height, title, and specified input method.
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     * @param title Title of the Console.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     */
+    public DragonConsole(int width, int height, String title, boolean useInlineInput) {
+        super();
+        this.setSize(width, height);
+        this.title = title;
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = true;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom width and height and the specified input method.
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     */
+    public DragonConsole(int width, int height, boolean useInlineInput) {
+        super();
+        this.setSize(width, height);
+        this.title = "DragonConsole " + this.getVersion();
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = true;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom width and height, the specified input method, and whether or not to print the logo.
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
+     */
+    public DragonConsole(int width, int height, boolean useInlineInput, boolean printDefaultMessage) {
+        super();
+        setSize(width, height);
+        this.title = "DragonConsole " + this.getVersion();
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = printDefaultMessage;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom title.
      * @param title The title for the DragonConsole window.
      */
     public DragonConsole(String title) {
         super();
-        this.setTitle(title);
+        this.setSize(800, 600);
+        this.title = title;
+        this.useInlineInput = true;
+        this.printDefaultMessage = false;
+
         this.initializeConsole();
     }
 
-    /** Creates a new DragonConsole with a custom title, and does not print the default message.
-     * Creates a new DragonConsole with a custom title and specifies not to print
-     * the defaults message to the console.
-     * @param title The Title that you want he DragonConsole frame to have.
-     * @param printDefaultMessage Either <code>true</code> or <code>false</code> and tells the DragonConsole to print or not to print the default message.
+    /** Creates a console with a custom title and the specified input method.
+     * @param title The title for the DragonConsole window.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
      */
-    public DragonConsole(String title, boolean printDefaultMessage) {
+    public DragonConsole(String title, boolean useInlineInput) {
         super();
-        this.setTitle(title);
+        this.setSize(800, 600);
+        this.title = title;
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = false;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a console with a custom title, the specified input method, and whether to print the logo or not.
+     * @param title The title for the DragonConsole window.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
+     */
+    public DragonConsole(String title, boolean useInlineInput, boolean printDefaultMessage) {
+        super();
+        this.setSize(800, 600);
+        this.title = title;
+        this.useInlineInput = useInlineInput;
         this.printDefaultMessage = printDefaultMessage;
+
+        this.initializeConsole();
+    }
+
+    /** Creates a Console with a custom width, height, and title, the specified input method, and whether or not to print the logo.
+     * Allows the programmer to initialize a new console with custom initial
+     * settings.
+     * @param width Width of the Console.
+     * @param height Height of the Console.
+     * @param title Title of the Console.
+     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
+     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
+     */
+    public DragonConsole(int width, int height, String title, boolean useInlineInput, boolean printDefaultMessage) {
+        super();
+        this.setSize(width, height);
+        this.title = title;
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = printDefaultMessage;
+
         this.initializeConsole();
     }
 
@@ -183,10 +330,9 @@ public class DragonConsole extends JFrame implements KeyListener {
      * that they take into account the new background/foreground colors.
      */
     public void setMacStyle() {
-        useDefaultStyle = false;
-        outputPane.setBackground(defaultMacBackground);
-        outputPane.setCaretColor(defaultMacCaret);
-        outputPane.setForeground(defaultMacForeground);
+        consolePane.setBackground(defaultMacBackground);
+        consolePane.setCaretColor(defaultMacCaret);
+        consolePane.setForeground(defaultMacForeground);
         inputArea.setBackground(defaultMacBackground);
         inputArea.setCaretColor(defaultMacCaret);
         inputArea.setForeground(defaultMacForeground);
@@ -206,10 +352,9 @@ public class DragonConsole extends JFrame implements KeyListener {
      * systemColor, and errorColor.
      */
     public void setDefaultStyle() {
-        useDefaultStyle = true;
-        outputPane.setBackground(defaultBackground);
-        outputPane.setCaretColor(defaultCaret);
-        outputPane.setForeground(defaultForeground);
+        consolePane.setBackground(defaultBackground);
+        consolePane.setCaretColor(defaultCaret);
+        consolePane.setForeground(defaultForeground);
         inputArea.setBackground(defaultBackground);
         inputArea.setCaretColor(defaultCaret);
         inputArea.setForeground(defaultForeground);
@@ -223,35 +368,77 @@ public class DragonConsole extends JFrame implements KeyListener {
         setInputAttribute();
     }
 
-    /** Sets the Input AttributeSet for the input control to the given input color
+    /** Sets the Input AttributeSet for the input control to the given input color.
+     * This is called when the input color is changed so that all input is added
+     * with the AttributeSet (Style) that has been specified for input.
      */
     private void setInputAttribute() {
-        inputControl.setInputAttributeSet(outputStyledDocument.getStyle(inputColor));
+        inputControl.setInputAttributeSet(consoleStyledDocument.getStyle(inputColor));
+
+        if (!useInlineInput) {
+            inputArea.setForeground(getStyleColorFromCode(inputColor.charAt(0))); // Foreground
+            inputArea.setBackground(getStyleColorFromCode(inputColor.charAt(1))); // Background
+        }
     }
 
-    /** Centers the window based on screen size and window size.
-     */
-    private void centerWindow() {
-        Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = defaultToolkit.getScreenSize();
-        this.setLocation(
-                (int)((screenSize.getWidth() / 2) - (this.getWidth() / 2)),
-                (int)((screenSize.getHeight() / 2) - (this.getHeight() / 2)));
+    private Color getStyleColorFromCode(char foreground) {
+        for (int i = 0; i < textColors.size(); i++) {
+            TextColor tc = textColors.get(i);
+            if (tc.equals(foreground))
+                return tc.getColor();
+        }
+
+        return Color.WHITE;
     }
+
+    /** Sets the size of this JPanel.
+     * This method is overridden so that it will change the Maximum, Minimum,
+     * and Preferred Size, as well as call the super.setSize(dim) method.
+     * @param width The width of this object
+     * @param height The height of this object.
+     */
+    @Override
+    public void setSize(int width, int height) {
+        Dimension dim = new Dimension(width, height);
+        this.setSize(dim);
+    }
+
+    /** Sets the size of this JPanel.
+     * This method is overridden so that it will change the Maximum, Minimum,
+     * and Preferred Size, as well as call the super.setSize(dim) method.
+     * @param dim The new size of this object.
+     */
+    @Override
+    public void setSize(Dimension dim) {
+        super.setMaximumSize(dim);
+        super.setMinimumSize(dim);
+        super.setPreferredSize(dim);
+    }
+
+    /** Overridden to remove functionality, use <code>setSize()</code>
+     * Functionality has been removed, use <code>setSize()</code>
+     */
+    @Override
+    public void setMaximumSize(Dimension dim) { }
+
+    /** Overridden to remove functionality, use <code>setSize()</code>
+     * Functionality has been removed, use <code>setSize()</code>
+     */
+    @Override
+    public void setMinimumSize(Dimension dim) { }
+    
+    /** Overridden to remove functionality, use <code>setSize()</code>
+     * Functionality has been removed, use <code>setSize()</code>
+     */
+    @Override
+    public void setPreferredSize(Dimension dim) { }
 
     /** Sets all the default standard values for the console.
      * Sets all the values that are shared between all constructors so that
      * the console maintains similarities when other settings are turned on/off
      * or changed.
      */
-    private void initializeConsole() {
-        setSize(width, height);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
-
-        // Input Field default behaiviour
-        inputFieldNewLine = true;
-
+    protected void initializeConsole() {
         // Navigating Previous Entries default behaviour
         //  Default holds 10 values, most recent entry at index 0, and oldest at
         //  the end.
@@ -259,21 +446,45 @@ public class DragonConsole extends JFrame implements KeyListener {
         numberOfPreviousEntries = 10;
         currentPreviousEntry = 0;
 
+        // Initialzie textColors ArrayList
+        textColors = new ArrayList<TextColor>();
+
         // Create a new input controller
         inputControl = new InputController(null);
 
         // Setting the Font properly for the Prompt
         consolePrompt.setPromptFont(consoleFont);
 
-        outputPane = new JTextPane();
-        outputPane.setBackground(defaultBackground);
-        outputPane.setForeground(defaultForeground);
-        outputPane.setCaretColor(defaultCaret);
-        outputPane.setFont(consoleFont);
-        outputPane.addKeyListener(this);
-        //outputPane.setEditable(false);
-        //outputPane.setFocusable(false);
-        outputPane.setBorder(null);
+        if (useInlineInput) {
+            consolePane = new JTextPane() {
+                @Override
+                public void paste() {
+                    try {
+                        String pasteText = (String)(Toolkit.getDefaultToolkit()
+                                .getSystemClipboard()
+                                .getData(DataFlavor.stringFlavor));
+                        getDocument().insertString(getCaretPosition(),
+                                pasteText, null);
+                    } catch (Exception exc) { }
+                }
+            };
+            
+            consolePane.addKeyListener(this);
+            consolePane.addCaretListener(this);
+
+            inputControl.installConsole(consolePane);
+
+        } else {
+            consolePane = new JTextPane();
+            consolePane.setFocusable(false);
+            consolePane.setEditable(false);
+        }
+
+        consolePane.setBackground(defaultBackground);
+        consolePane.setForeground(defaultForeground);
+        consolePane.setCaretColor(defaultCaret);
+        consolePane.setFont(consoleFont);
+        consolePane.setBorder(null);
 
         // Add Copy functionality to the Console
         //   and remove Cut/Paste functionality
@@ -283,17 +494,18 @@ public class DragonConsole extends JFrame implements KeyListener {
                     javax.swing.text.DefaultEditorKit.copyAction),
            new JTextComponent.KeyBinding(
                     KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK),
-                    javax.swing.text.DefaultEditorKit.beepAction),
+                    javax.swing.text.DefaultEditorKit.pasteAction),
            new JTextComponent.KeyBinding(
                     KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_DOWN_MASK),
                     javax.swing.text.DefaultEditorKit.beepAction)
         };
-        Keymap k = outputPane.getKeymap();
-        JTextComponent.loadKeymap(k, newBindings, outputPane.getActions());
+        Keymap k = consolePane.getKeymap();
+        JTextComponent.loadKeymap(k, newBindings, consolePane.getActions());
 
         // Get the outputPanes StyledDocument and add the DocumentFilter to it
-        outputStyledDocument = outputPane.getStyledDocument();
-        ((AbstractDocument)outputStyledDocument).setDocumentFilter(inputControl);
+        consoleStyledDocument = consolePane.getStyledDocument();
+        if (useInlineInput)
+            ((AbstractDocument)consoleStyledDocument).setDocumentFilter(inputControl);
 
         inputArea = new JTextArea();
         inputArea.setBackground(defaultBackground);
@@ -303,12 +515,11 @@ public class DragonConsole extends JFrame implements KeyListener {
         inputArea.setLineWrap(true);
         inputArea.setFont(consoleFont);
         inputArea.setBorder(null);
-        //inputArea.addKeyListener(this);
-        //int inputHeight = (this.getHeight())
-        //Dimension inputSize = new Dimension();
+        inputArea.addKeyListener(this);
 
-        JScrollPane outputScrollPane = new JScrollPane(outputPane);
-        outputScrollPane.setBorder(null);
+        consoleScrollPane = new JScrollPane(consolePane);
+        consoleScrollPane.setBorder(null);
+
         JScrollPane inputScrollPane = new JScrollPane(inputArea);
         inputScrollPane.setBorder(null);
 
@@ -317,22 +528,43 @@ public class DragonConsole extends JFrame implements KeyListener {
         inputPanel.add(inputArea, BorderLayout.CENTER);
 
         JPanel splitPane = new JPanel(new BorderLayout());
-        splitPane.add(outputScrollPane, BorderLayout.CENTER);
+        splitPane.add(consoleScrollPane, BorderLayout.CENTER);
         splitPane.add(inputPanel, BorderLayout.SOUTH);
 
-        add(splitPane);
+        setLayout(new BorderLayout());
+        if (useInlineInput)
+            add(consoleScrollPane, BorderLayout.CENTER);
+        else
+            add(splitPane, BorderLayout.CENTER);
 
         setDefaultStyle();
         setOutputStyles();
         printDefault();
-        centerWindow();
-        append("&CbTest Protected: [%i10+;]");
     }
 
-    /** Prints a default message that's stored in a text file in the .jar.
-     * Prints a default message thats saved within the .jar to the console. The
-     * message is just a text file with a default output advertising the
-     * DragonConsole.
+    /** Returns the title for this DragonConsole object.
+     * Returns the title that is stored within this DragonConsole object if the
+     * programmer wishes to use it. DragonConsoleFrame uses this to set
+     * the title initially.
+     * @return The title stored within this DragonConsole.
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /** Sets the title within this DragonConsole object.
+     * Sets the title within this DragonConsole to the new title given. If the
+     * title for DragonConsoleFrame is changed it will call this method with
+     * the new title as well.
+     * @param title The new title for this DragonConsole object.
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /** Prints the logo for DragonConsole if <code>printDefaultMessage</code> is <code>true</code>
+     * Prints the DragonConsole logo that is saved in dc_logo.txt in the .jar
+     * if <code>printDefaultMessage</code> is set to <code>true</code>.
      */
     private void printDefault() {
         if (printDefaultMessage) {
@@ -340,10 +572,17 @@ public class DragonConsole extends JFrame implements KeyListener {
         }
     }
 
+    /** Sets the the input color code (a string of two characters).
+     * Changes the Style that all input should use. The String passed is the
+     * name of the style which is the character for the foreground color and the
+     * character for the background color.
+     * @param inputColor The new input color string to use for input.
+     */
     public void setInputColor(String inputColor) {
         this.inputColor = inputColor;
         setInputAttribute();
     }
+
     /** Sets a CommandProcessor to act as an outside input processor if the user
      * decides to add custom control via text based commands with the
      * DragonConsole.
@@ -398,7 +637,7 @@ public class DragonConsole extends JFrame implements KeyListener {
     public void setConsoleFont(Font consoleFont) {
         this.consoleFont = consoleFont;
         this.setOutputStyles();
-        outputPane.setFont(consoleFont);
+        consolePane.setFont(consoleFont);
         inputArea.setFont(consoleFont);
         consolePrompt.setPromptFont(consoleFont);
     }
@@ -411,8 +650,6 @@ public class DragonConsole extends JFrame implements KeyListener {
     }
 
     private void fillConsoleColors() {
-        textColors = new ArrayList<TextColor>();
-        
         addTextColor('r', Color.RED); // Red
         addTextColor('R', Color.RED.darker()); // Dark Red
         addTextColor('l', Color.BLUE); // Blue
@@ -441,19 +678,14 @@ public class DragonConsole extends JFrame implements KeyListener {
         TextColor newColor = new TextColor(code, color);
         textColors.add(newColor);
 
-        outputStyledDocument =
-                DocumentStyler.addNewColor(outputStyledDocument, consoleFont, newColor, textColors);
+        consoleStyledDocument =
+                DocumentStyler.addNewColor(consoleStyledDocument, consoleFont, newColor, textColors);
     }
 
     /** Adds all the output styles to outputFields Styled Document.
      */
     private void setOutputStyles() {
         fillConsoleColors();
-
-        outputStyledDocument =
-                DocumentStyler.styleDocument(outputStyledDocument, consoleFont,
-                textColors);
-
         setInputAttribute();
     }
 
@@ -470,7 +702,7 @@ public class DragonConsole extends JFrame implements KeyListener {
     }
 
     /**
-     * Processes a String and prints the String according to all imbedded
+     * Processes a String and prints the String according to all embedded
      * color codes. If called from the CommandProcessor you can add in your
      * own color codes to the String to give a "System" color. ** DEPRECATED Use
      * <code>append(String)</code> instead.
@@ -515,7 +747,7 @@ public class DragonConsole extends JFrame implements KeyListener {
      */
     public void appendWithoutProcessing(String ouput) {
         print(ouput, defaultColor);
-        inputControl.setBasicInput(outputStyledDocument.getLength());
+        inputControl.setBasicInput(consoleStyledDocument.getLength());
     }
 
     /**
@@ -528,7 +760,6 @@ public class DragonConsole extends JFrame implements KeyListener {
         boolean hasInput = false;
         String processed = "";
         String style = defaultColor;
-        int processedOffset = 0; // Number of ingored characters
 
         for (int i = 0; i < outputToProcess.length(); i++) {
             if (outputToProcess.charAt(i) == colorCodeChar) {
@@ -536,24 +767,20 @@ public class DragonConsole extends JFrame implements KeyListener {
                         (outputToProcess.charAt(i + 1) == colorCodeChar)) {
                     processed += colorCodeChar;
                     i += 2; // Jump past the - (&&)
-                    processedOffset += 1;
 
                 } else if ((i + 2) < outputToProcess.length()) {
                     print(processed, style);
                     style = outputToProcess.substring(i + 1, i + 3);
                     processed = ""; // Clear processed for the next series of colored text
                     i += 2; // Jump past the two character color code
-                    processedOffset += 3;
 
                 } else
                     processed += outputToProcess.charAt(i);
             } else if (outputToProcess.charAt(i) == '%') {
-                System.out.println("Found at: " + i);
                 if ((i + 1) < outputToProcess.length() &&
                         outputToProcess.charAt(i + 1) == '%') {
                     processed += "%";
                     i += 2; // Jump past the "%%"
-                    processedOffset += 1;
 
                 } else if (outputToProcess.indexOf(';', i) > i) {
                     if (outputToProcess.charAt(i + 1) == 'i') {
@@ -562,7 +789,7 @@ public class DragonConsole extends JFrame implements KeyListener {
                         if (inputControl.setInputStyle(inputCommand)) {
                             
                             print(processed, style); // Print what's been processed in it's color
-                            inputControl.setRangeStart(outputStyledDocument.getLength());
+                            inputControl.setRangeStart(consoleStyledDocument.getLength());
                             print(inputControl.getInputRangeString(), defaultColor); // Print the blank space if the input is not infinite
                             
                             processed = ""; // Clear processed for the next series of colored text
@@ -570,7 +797,7 @@ public class DragonConsole extends JFrame implements KeyListener {
                             outputToProcess = ""; // Clear out the output to process if input is infinite, which means anything after the input string is ignored.
                             print(processed, style);
                             processed = "";
-                            inputControl.setRangeStart(outputStyledDocument.getLength());
+                            inputControl.setRangeStart(consoleStyledDocument.getLength());
                         }
 
                         i = outputToProcess.indexOf(';', i);
@@ -583,7 +810,7 @@ public class DragonConsole extends JFrame implements KeyListener {
         print(processed, style);
 
         if (!(hasInput))
-            inputControl.setBasicInput(outputStyledDocument.getLength());
+            inputControl.setBasicInput(consoleStyledDocument.getLength());
 
         setConsoleCaretPosition();
     }
@@ -595,11 +822,10 @@ public class DragonConsole extends JFrame implements KeyListener {
      */
     private void setConsoleCaretPosition() {
         int caretLocation = inputControl.getInputRangeStart();
-        System.out.println("caretLocation = " + caretLocation);
         if (caretLocation > -1)
-            outputPane.setCaretPosition(caretLocation);
+            consolePane.setCaretPosition(caretLocation);
         else
-            outputPane.setCaretPosition(outputStyledDocument.getLength());
+            consolePane.setCaretPosition(consoleStyledDocument.getLength());
     }
 
     /** Sends a message to be output with the default system color.
@@ -641,16 +867,19 @@ public class DragonConsole extends JFrame implements KeyListener {
     }
 
     /**
-     * This method adds a string to outputPane's StyledDocument allowing the
+     * This method adds a string to consolePane's StyledDocument allowing the
      * text to be styled by the predefined color styles.
      * @param output The text string to add to the Console.
      * @param style The color code for this text String.
      */
     protected void print(String output, String style) {
         try { // Try to add the colored string to the output area document
-            outputStyledDocument.insertString(
-                    outputStyledDocument.getLength(), output,
-                    outputStyledDocument.getStyle(style));
+            if (useInlineInput)
+                output = inputControl.getBypassPrefix() + output;
+
+            consoleStyledDocument.insertString(
+                    consoleStyledDocument.getLength(), output,
+                    consoleStyledDocument.getStyle(style));
         }
         catch (BadLocationException e) {
             JOptionPane.showMessageDialog(this,
@@ -661,313 +890,118 @@ public class DragonConsole extends JFrame implements KeyListener {
         }
     }
 
+    private void addPreviousEntry(String entry) {
+        previousEntries.add(entry);
+        if (previousEntries.size() > numberOfPreviousEntries)
+            previousEntries.remove(0);
+
+        currentPreviousEntry = previousEntries.size();
+    }
+
+    private void setPreviousEntryText() {
+        String text = "";
+        if (currentPreviousEntry < previousEntries.size()
+                && currentPreviousEntry >= 0)
+            text = previousEntries.get(currentPreviousEntry);
+
+        if (useInlineInput) {
+            if (inputControl.isReceivingInput() && inputControl.isInfiniteInput())
+                inputControl.setInput(text);
+        } else
+            inputArea.setText(text);
+
+    }
+
     public void keyTyped(KeyEvent e) { }
 
     public void keyPressed(KeyEvent e) {
+        if (!useInlineInput) {
+            JScrollBar vbar = consoleScrollPane.getVerticalScrollBar();
+            if (vbar.isVisible()) {
+                vbar.setValue(vbar.getMaximum());
+            }
+        }
+
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            /*if ((!inputFieldNewLine) || !(e.isShiftDown())) {
-                e.consume();
+            if (!ignoreInput) {
+                if (useInlineInput) {
+                    e.consume();
+                    String input = inputControl.getInput();
+                    
+                    if (commandProcessor != null)
+                        commandProcessor.processCommand(input);
+                    else
+                        appendWithoutProcessing(input);
+                    
+                    addPreviousEntry(input);
+                    
+                } else {
+                    if ((!inputFieldNewLine) || !(e.isShiftDown())) {
+                        e.consume();
 
-                String input = inputArea.getText();
-                inputArea.setText("");
-                if (commandProcessor != null)
-                    commandProcessor.processCommand(input);
-                else
-                    appendWithoutProcessing(input);
+                        String input = inputArea.getText();
+                        inputArea.setText("");
+                        if (commandProcessor != null)
+                            commandProcessor.processCommand(input);
+                        else
+                            appendWithoutProcessing(input);
 
-                // Previous Entry controls
-                previousEntries.add(input);
-                if (previousEntries.size() > numberOfPreviousEntries)
-                    previousEntries.remove(0);
-                currentPreviousEntry = previousEntries.size();
-            } else {
-                inputArea.append("\n");
-            }*/
+                        addPreviousEntry(input);
 
-            e.consume();
-            String input = inputControl.getInput();
-            append("\n&CbINPUT: &ob" + input + "\n\n &Cb::> %i;");
+                    } else {
+                        inputArea.append("\n");
+                    }
+                }
+            }
         }
 
         if ((e.getKeyCode() == KeyEvent.VK_RIGHT) && e.isShiftDown()) {
             e.consume();
 
-            currentPreviousEntry--;
-            if (currentPreviousEntry < 0)
-                currentPreviousEntry = 0;
-            else
-                inputArea.setText(previousEntries.get(currentPreviousEntry));
+            if (!useInlineInput
+                    || (useInlineInput
+                       && inputControl.isReceivingInput()
+                       && inputControl.isInfiniteInput())) {
+                currentPreviousEntry--;
+                if (currentPreviousEntry < 0)
+                    currentPreviousEntry = previousEntries.size();
+
+                setPreviousEntryText();
+            }
         }
 
         if ((e.getKeyCode() == KeyEvent.VK_LEFT) && (e.isShiftDown())) {
             e.consume();
 
+            if (!useInlineInput
+                    || (useInlineInput
+                       && inputControl.isReceivingInput()
+                       && inputControl.isInfiniteInput())) {
             currentPreviousEntry++;
-            if (currentPreviousEntry >= previousEntries.size()) {
-                currentPreviousEntry = previousEntries.size();
-                inputArea.setText("");
-            } else
-                inputArea.setText(previousEntries.get(currentPreviousEntry));
+                if (currentPreviousEntry >= previousEntries.size())
+                    currentPreviousEntry = previousEntries.size();
+                
+                setPreviousEntryText();
+            }
         }
     }
 
     public void keyReleased(KeyEvent e) { }
 
-    /** Controls Input, more Documentation later.
-     * @author Brandon Buck
-     */
-    private class InputController extends DocumentFilter {
-        private int rangeStart;
-        private int rangeEnd;
-        private boolean protect;
-        private DCString input;
-        private String protectedChar = "*";
-        private boolean isReceivingInput;
-        private AttributeSet inputAttr;
+    public void caretUpdate(CaretEvent e) {
+        Caret caret = consolePane.getCaret();
+        int location = e.getDot();
 
-        /** Default constructor
-         * rangeStart - The beginning of the input range, will always contain a
-         *    value
-         * rangeEnd - The end of the input range, -1 if the range has no limit
-         *    or the max value of the input range
-         * protect - true or false, whether or not the input needs to be
-         *    protected
-         * protectedText - if the input needs to be protected the actual input
-         *    will be stored here.
-         */
-        private InputController(AttributeSet attr) {
-            super();
-            rangeStart = 0;
-            rangeEnd = 0;
-            protect = false;
-            input = new DCString("");
-            isReceivingInput = false;
-            inputAttr = attr;
-        }
-
-        /** Changes the <code>inputAttr</code> for the input controller.
-         * Changes the default <code>AttributeSet</code> for this
-         * <code>InputController</code> that is used to style all input.
-         * @param newInputAttr The new <code>AttributeSet</code> to use
-         */
-        public void setInputAttributeSet(AttributeSet newInputAttr) {
-            inputAttr = newInputAttr;
-        }
-
-        public void setRangeStart(int newRangeStart) {
-            if (isReceivingInput) {
-                rangeStart = newRangeStart;
-                if (rangeEnd > 0)
-                    rangeEnd += newRangeStart;
-            }
-        }
-
-        /** Passed an input string, breaking it apart and setting the input controller to fit the input constraints.
-         * Passed an input String from the console and breaks it down and sets
-         * up the input controller according the input string passed to it.
-         * The input strings format is:
-         *      %i#[+|-|];
-         *
-         * Accepted minimum is "%i;" which means input from the position of %
-         * forward.
-         *
-         * The # can be any number (int) that specifies the amount of characters
-         * that fit in this input range.
-         *
-         * The "[+|-|]" means that either a "+", "-", or blank space. "-" and
-         * "" both mean the same thing, unprotected input, if a "+" is present
-         * that means the input is protected.
-         *
-         * If there is an error, or the minimum is passed ("%i;") then input is
-         * treated as "UNLIMITED"
-         *
-         * <strong>IMPORTANT: The Start position MUST be specified after the
-         * input style is set. This was added in to give the console more
-         * control as to where the cursor needs to default for input control and
-         * make input ranges MUCH more accurate.</strong>
-         * @param newInputStyle String containing the new input style for the input controller.
-         * @return Returns true if all text after the input command should be ignored (if the input has an unlimited Range);
-         */
-        public boolean setInputStyle(String newInputStyle) {
-            rangeStart = -1;
-            rangeEnd = 0;
-            protect = false;
-            input = new DCString("");
-            isReceivingInput = true;
-            
-            if (newInputStyle.equals("%i;")) {
-                rangeEnd = -1;
-                return false;
-            } else {
-                String inputStyle = newInputStyle.substring(2); // Chop off the "%i"
-                inputStyle = inputStyle.substring(0, inputStyle.length() - 1); // Chop off the ";"
-
-                if (inputStyle.length() > 0) {
-                    if (inputStyle.charAt(inputStyle.length() - 1) == '+' || inputStyle.charAt(inputStyle.length() - 1) == '-') {
-                        char tempProtect = inputStyle.charAt(inputStyle.length() - 1);
-                        inputStyle = inputStyle.substring(0, inputStyle.length() - 1);
-
-                        if (tempProtect == '+')
-                            protect = true;
-                    }
-
-                    if (inputStyle.length() > 0) {
-                        rangeEnd = Integer.parseInt(inputStyle);
-
-                        input.set(getInputRangeString());
-
-                        return true;
-                    } else {
-                        rangeEnd = -1;
-
-                        return false;
-                    }
-
-                } else {
-                    rangeEnd = -1;
-                    return false;
-                }
-            }
-        }
-
-        /** The location that the input starts, used for setting the Caret position.
-         * The location the input range starts, used for programmatically
-         * setting the outputPane's Caret position.
-         * @return The start position of the input, if not currently receiving input then -1
-         */
-        public int getInputRangeStart() {
-            if (isReceivingInput)
-                return rangeStart;
-            else
-                return -1;
-        }
-
-        /** Tests to see if input is controlled by a range or infinite.
-         * Returns true if this input has no maximum range, or false if the
-         * input is limited by a range.
-         * @return true if input has no limited range, or false if it does.
-         */
-        public boolean isInfiniteInput() {
-            return (rangeEnd == -1);
-        }
-
-        /** Sets the basic input which is unlimited input from position <code>startPosition</code>.
-         * Sets input to it's basic level which is an unlimited number of
-         * characters after the startPosition which is the equivalent of calling
-         * <code>setInputStyle("%i;");</code>. This method is called from
-         * the append method if no input script was detected in the output. (By
-         * default, all output MUST have input).
-         * @param startPosition The last position of output, and the start of the input.
-         */
-        public void setBasicInput(int startPosition) {
-            rangeStart = startPosition;
-            rangeEnd = -1;
-            protect = false;
-            input = new DCString("");
-            isReceivingInput = true;
-        }
-
-        public String getInputRangeString() {
-            if (isReceivingInput && rangeEnd > 0) {
-                String inputRangeString = "";
-                int counter = 0;
-                if (rangeStart >= 0)
-                    counter = rangeStart;
-
-                for (int x = counter; x < rangeEnd; x++)
-                    inputRangeString += " ";
-
-                return inputRangeString;
-            } else
-                return "";
-        }
-
-        /** Sets a custom protected character if '*' is not desired.
-         * @param protectedChar The new protected char.
-         */
-        public void setProtectedChar(char protectedChar) {
-            this.protectedChar = protectedChar + "";
-        }
-
-        /** Used to determine if input is actively being received.
-         * This method is used to determine if the InputController has input
-         * controls in place for current input. This is used to help prevent
-         * tampering with output while
-         * @return
-         */
-        public boolean isReceivingInput() {
-            return isReceivingInput;
-        }
-
-        public String getInput() {
-            isReceivingInput = false;
-            return input.get().trim();
-        }
-
-        @Override
-        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-            fb.insertString(offset, string, attr);
-        }
-
-        @Override
-        public void replace(FilterBypass fb, int offset, int length, String string, AttributeSet attr) throws BadLocationException {
-            if (isReceivingInput && rangeStart > 0) {
-                if (offset >= rangeStart) {
-                    if (!isInfiniteInput() && (offset + 1) <= rangeEnd) {
-                        boolean inserted = input.rangeInsert((offset - rangeStart), string);
-                        
-                        if (inserted) {
-                            if (protect)
-                                fb.replace(offset, length, protectedChar, inputAttr);
-                            else
-                                fb.replace(offset, length, string, inputAttr);
-
-                            if (input.endIsEmpty())
-                                fb.remove(rangeEnd - 1, 1);
-                            else
-                                fb.remove(rangeEnd, 1);
-                        } else
-                            Toolkit.getDefaultToolkit().beep();
-                        
-                        
-                        
-                    } else if (isInfiniteInput()) {
-                        if (protect)
-                            fb.replace(offset, length, protectedChar, inputAttr);
-                        else
-                            fb.replace(offset, length, string, inputAttr);
-
-                        input.replace((offset - rangeStart), length, string);
-                    } else
-                        Toolkit.getDefaultToolkit().beep();
-                } else
-                    Toolkit.getDefaultToolkit().beep();
-            } else
+        if (inputControl.isReceivingInput() && e.getDot() == e.getMark()) {            
+            if (location < inputControl.getInputRangeStart()) {
+                consolePane.setCaretPosition(inputControl.getInputRangeStart());
                 Toolkit.getDefaultToolkit().beep();
-        }
+            }
 
-        @Override
-        public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-            if (isReceivingInput && rangeStart > 0) {
-                if (!(offset < rangeStart)) {
-                    if (!isInfiniteInput()) {
-                        fb.remove(offset, length);
-                        fb.insertString((rangeEnd - 1), " ", inputAttr);
-
-                        if (outputPane.getCaretPosition() == rangeEnd)
-                            outputPane.setCaretPosition(rangeEnd - 1);
-                    } else
-                        fb.remove(offset, length);
-
-                    
-                    if (!isInfiniteInput())
-                        input.rangeRemove((offset - rangeStart), length);
-                    else
-                        input.remove((offset - rangeStart), length);
-                } else
-                    Toolkit.getDefaultToolkit().beep();
-            } else
+            if (!(inputControl.isInfiniteInput()) && location > inputControl.getInputRangeEnd()) {
+                consolePane.setCaretPosition(inputControl.getInputRangeEnd());
                 Toolkit.getDefaultToolkit().beep();
+            }      
         }
-    }
+    }  
 }

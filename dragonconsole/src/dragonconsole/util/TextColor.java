@@ -50,10 +50,12 @@ public class TextColor {
     }
 
     public int compareTo(Object o) {
-        if (o instanceof Character) {
+        String cName = o.getClass().getName();
+
+        if (cName.equals("java.lang.Character")) {
             Character c = new Character(charCode);
             return c.compareTo((Character)o);
-        } else if (o instanceof TextColor) {
+        } else if (cName.equals("dragonconsole.util.TextColor")) {
             Character c = new Character(charCode);
             Character otherC = new Character(((TextColor)o).getCharCode());
             return c.compareTo(otherC);
@@ -63,10 +65,16 @@ public class TextColor {
     }
 
     public boolean equals(Object o) {
-        if (o instanceof TextColor) {
-            TextColor otc = (TextColor)o;
-            return ((charCode == otc.getCharCode()) && (color.equals(otc.getColor())));
+        String cName = o.getClass().getName();
 
+        if (cName.equals("dragonconsole.util.TextColor")) {
+            TextColor otc = (TextColor)o;
+
+            return ((charCode == otc.getCharCode()));
+        } else if (cName.equals("java.lang.Character")) {
+            Character oc = (Character)o;
+
+            return ((charCode == oc.toString().charAt(0)));
         } else
             return false;
     }
