@@ -27,7 +27,7 @@ public class Main {
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                DragonConsole console = new DragonConsole(false);
+                DragonConsole console = new DragonConsole();
                 DragonConsoleFrame frame = new DragonConsoleFrame(console);
                 CommandProcessor processor = new CommandProcessor();
                 console.setCommandProcessor(processor);

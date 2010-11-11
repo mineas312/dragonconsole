@@ -96,7 +96,6 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     private JTextPane consolePane;
     private JTextArea inputArea;
     private StyledDocument consoleStyledDocument;
-    private String title = "DragonConsole - " + getVersion();
     private JScrollPane consoleScrollPane;
 
     // Console
@@ -140,9 +139,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole() {
         super();
         this.setSize(800, 600);
-        this.title = "DragonConsole " + getVersion();
         this.useInlineInput = true;
-        this.printDefaultMessage = false;
+        this.printDefaultMessage = true;
 
         this.initializeConsole();
     }
@@ -153,7 +151,6 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole(boolean useInlineInput) {
         super();
         this.setSize(800, 600);
-        this.title = "DragonConsole " + getVersion();
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = false;
 
@@ -169,7 +166,6 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole(boolean useInlineInput, boolean printDefaultMessage) {
         super();
         this.setSize(800, 600);
-        this.title = "DragonConsole " + getVersion();
         this.useInlineInput = true;
         this.printDefaultMessage = false;
 
@@ -185,43 +181,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole(int width, int height) {
         super();
         this.setSize(width, height);
-        this.title = "DragonConsole " + this.getVersion();
         this.useInlineInput = true;
-        this.printDefaultMessage = true;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a console with a custom width, height, and title.
-     * Allows the programmer to initialize a new console with custom initial
-     * settings.
-     * @param width Width of the Console.
-     * @param height Height of the Console.
-     * @param title Title of the Console.
-     */
-    public DragonConsole(int width, int height, String title) {
-        super();
-        this.setSize(width, height);
-        this.title = title;
-        this.useInlineInput = true;
-        this.printDefaultMessage = true;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a console with a custom width, height, title, and specified input method.
-     * Allows the programmer to initialize a new console with custom initial
-     * settings.
-     * @param width Width of the Console.
-     * @param height Height of the Console.
-     * @param title Title of the Console.
-     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
-     */
-    public DragonConsole(int width, int height, String title, boolean useInlineInput) {
-        super();
-        this.setSize(width, height);
-        this.title = title;
-        this.useInlineInput = useInlineInput;
         this.printDefaultMessage = true;
 
         this.initializeConsole();
@@ -237,7 +197,6 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole(int width, int height, boolean useInlineInput) {
         super();
         this.setSize(width, height);
-        this.title = "DragonConsole " + this.getVersion();
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = true;
 
@@ -254,69 +213,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     public DragonConsole(int width, int height, boolean useInlineInput, boolean printDefaultMessage) {
         super();
-        setSize(width, height);
-        this.title = "DragonConsole " + this.getVersion();
-        this.useInlineInput = useInlineInput;
-        this.printDefaultMessage = printDefaultMessage;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a console with a custom title.
-     * @param title The title for the DragonConsole window.
-     */
-    public DragonConsole(String title) {
-        super();
-        this.setSize(800, 600);
-        this.title = title;
-        this.useInlineInput = true;
-        this.printDefaultMessage = false;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a console with a custom title and the specified input method.
-     * @param title The title for the DragonConsole window.
-     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
-     */
-    public DragonConsole(String title, boolean useInlineInput) {
-        super();
-        this.setSize(800, 600);
-        this.title = title;
-        this.useInlineInput = useInlineInput;
-        this.printDefaultMessage = false;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a console with a custom title, the specified input method, and whether to print the logo or not.
-     * @param title The title for the DragonConsole window.
-     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
-     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
-     */
-    public DragonConsole(String title, boolean useInlineInput, boolean printDefaultMessage) {
-        super();
-        this.setSize(800, 600);
-        this.title = title;
-        this.useInlineInput = useInlineInput;
-        this.printDefaultMessage = printDefaultMessage;
-
-        this.initializeConsole();
-    }
-
-    /** Creates a Console with a custom width, height, and title, the specified input method, and whether or not to print the logo.
-     * Allows the programmer to initialize a new console with custom initial
-     * settings.
-     * @param width Width of the Console.
-     * @param height Height of the Console.
-     * @param title Title of the Console.
-     * @param useInlineInput <code>true</code> to use inline input or <code>false</code> to use a text area for input.
-     * @param printDefaultMessage <code>true</code> to print the DragonConsole logo or <code>false</code> to print nothing.
-     */
-    public DragonConsole(int width, int height, String title, boolean useInlineInput, boolean printDefaultMessage) {
-        super();
         this.setSize(width, height);
-        this.title = title;
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = printDefaultMessage;
 
@@ -542,33 +439,15 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         printDefault();
     }
 
-    /** Returns the title for this DragonConsole object.
-     * Returns the title that is stored within this DragonConsole object if the
-     * programmer wishes to use it. DragonConsoleFrame uses this to set
-     * the title initially.
-     * @return The title stored within this DragonConsole.
-     */
-    public String getTitle() {
-        return title;
-    }
-
-    /** Sets the title within this DragonConsole object.
-     * Sets the title within this DragonConsole to the new title given. If the
-     * title for DragonConsoleFrame is changed it will call this method with
-     * the new title as well.
-     * @param title The new title for this DragonConsole object.
-     */
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     /** Prints the logo for DragonConsole if <code>printDefaultMessage</code> is <code>true</code>
      * Prints the DragonConsole logo that is saved in dc_logo.txt in the .jar
      * if <code>printDefaultMessage</code> is set to <code>true</code>.
      */
     private void printDefault() {
         if (printDefaultMessage) {
-
+            try {
+                append(FileProcessor.readDCResource("colors"));
+            } catch(Exception exc) { }
         }
     }
 
@@ -766,7 +645,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
                 if ( ((i + 1) < outputToProcess.length()) &&
                         (outputToProcess.charAt(i + 1) == colorCodeChar)) {
                     processed += colorCodeChar;
-                    i += 2; // Jump past the - (&&)
+                    i += 1; // Jump past the - (&&)
 
                 } else if ((i + 2) < outputToProcess.length()) {
                     print(processed, style);
@@ -780,7 +659,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
                 if ((i + 1) < outputToProcess.length() &&
                         outputToProcess.charAt(i + 1) == '%') {
                     processed += "%";
-                    i += 2; // Jump past the "%%"
+                    i += 1; // Jump past the "%%"
 
                 } else if (outputToProcess.indexOf(';', i) > i) {
                     if (outputToProcess.charAt(i + 1) == 'i') {

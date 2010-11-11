@@ -22,10 +22,67 @@
 
 package dragonconsole.file;
 
-/**
- *
+import java.io.*;
+
+/** Reads in a file and returns the contents in the appropriate format to the caller.
+ * Receives a file path and then reads the contents of the file into the proper
+ * format and returns the Object back to the caller. This is a static class and
+ * should not be instantiated.
  * @author Brandon E Buck
+ * @version 1.0
  */
 public class FileProcessor {
+    private FileProcessor() { }
 
+    public static String readText(String filePath) throws FileNotFoundException {
+        return readText(new File(filePath));
+    }
+
+    public static String readText(File file) throws FileNotFoundException {
+        String contents = "";
+
+        if (file.exists()) {
+            try {
+                FileReader fread = new FileReader(file);
+                BufferedReader in = new BufferedReader(fread);
+
+                String line = in.readLine();
+                while (line != null) {
+                    contents += line + "\n";
+                    line = in.readLine();
+                }
+
+                in.close();
+                fread.close();
+
+            } catch(Exception exc) { }
+
+        } else
+            throw new FileNotFoundException("Invalid File Path provided (" + file.getName() + ").");
+
+        return contents;
+    }
+
+    public static String readDCResource(String file) throws FileNotFoundException {
+        String contents = "";
+        
+        try {
+            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/resources/" + file);
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader in = new BufferedReader(isr);
+
+            String line = in.readLine();
+            while (line != null) {
+                contents += line + "\n";
+                line = in.readLine();
+            }
+
+            in.close();
+            isr.close();
+            is.close();
+
+        } catch(Exception exc) { }
+
+        return contents;
+    }
 }

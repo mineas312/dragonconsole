@@ -32,10 +32,21 @@ import java.awt.*;
 public class DragonConsoleFrame extends JFrame {
     private DragonConsole console;
 
-    public DragonConsoleFrame() {
-        console = new DragonConsole();
+    public DragonConsoleFrame(String title, DragonConsole console) {
+        this.console = console;
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setTitle(console.getTitle());
+        this.setTitle(title);
+        
+        this.add(console);
+        this.pack();
+
+        this.centerWindow();
+    }
+
+    public DragonConsoleFrame() {
+        this.console = new DragonConsole();
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setTitle("DragonConsole " + console.getVersion());
 
         this.add(console);
         this.pack();
@@ -46,8 +57,19 @@ public class DragonConsoleFrame extends JFrame {
     public DragonConsoleFrame(DragonConsole console) {
         this.console = console;
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setTitle(console.getTitle());
+        this.setTitle("DragonConsole " + console.getVersion());
         
+        this.add(console);
+        this.pack();
+
+        this.centerWindow();
+    }
+
+    public DragonConsoleFrame(String title) {
+        console = new DragonConsole();
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setTitle(title);
+
         this.add(console);
         this.pack();
 
