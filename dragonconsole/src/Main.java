@@ -31,12 +31,12 @@ public class Main {
                 DragonConsole console = new DragonConsole();
                 DragonConsoleFrame frame = new DragonConsoleFrame(console);
                 CommandProcessor processor = new CommandProcessor();
-                console.setConsoleFont(new Font("Monospaced", Font.BOLD, 14));
                 console.setCommandProcessor(processor);
-                console.append("╔══════════╗\n"
-                             + "║%i10;║\n"
-                             + "╚══════════╝");
+                //console.append("&ob>> ");
 
+                console.append("╔══════════╗\n"
+                             + "║%i10+;║\n"
+                             + "╚══════════╝");
                 frame.setVisible(true);
             }
         });

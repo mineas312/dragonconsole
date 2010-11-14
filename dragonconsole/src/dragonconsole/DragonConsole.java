@@ -166,8 +166,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     public DragonConsole(boolean useInlineInput, boolean printDefaultMessage) {
         super();
         this.setSize(800, 600);
-        this.useInlineInput = true;
-        this.printDefaultMessage = false;
+        this.useInlineInput = useInlineInput;
+        this.printDefaultMessage = printDefaultMessage;
 
         this.initializeConsole();
     }
@@ -720,6 +720,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
             consolePane.setCaretPosition(caretLocation);
         else
             consolePane.setCaretPosition(consoleStyledDocument.getLength());
+
     }
 
     /** Sends a message to be output with the default system color.
