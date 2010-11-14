@@ -459,7 +459,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
                 if (consolePane.getBackground().equals(Color.WHITE))
                     color = "w";
 
-                append(FileProcessor.readDCResource("colors_" + color));
+                append(FileProcessor.readDCResource("logo_" + color));
             } catch(Exception exc) { }
         }
     }
