@@ -22,6 +22,7 @@
 
 import dragonconsole.*;
 import java.awt.Color;
+import java.awt.Font;
 
 public class Main {
     public static void main(String[] args) {
@@ -30,10 +31,11 @@ public class Main {
                 DragonConsole console = new DragonConsole();
                 DragonConsoleFrame frame = new DragonConsoleFrame(console);
                 CommandProcessor processor = new CommandProcessor();
+                console.setConsoleFont(new Font("Monospaced", Font.BOLD, 14));
                 console.setCommandProcessor(processor);
-                console.addTextColor('m', Color.MAGENTA);
-                console.setInputColor("mb");
-                console.append("&ob>> ");
+                console.append("╔══════════╗\n"
+                             + "║%i10;║\n"
+                             + "╚══════════╝");
 
                 frame.setVisible(true);
             }

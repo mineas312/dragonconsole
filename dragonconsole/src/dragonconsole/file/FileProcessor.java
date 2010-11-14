@@ -23,6 +23,7 @@
 package dragonconsole.file;
 
 import java.io.*;
+import java.awt.Font;
 
 /** Reads in a file and returns the contents in the appropriate format to the caller.
  * Receives a file path and then reads the contents of the file into the proper
@@ -84,5 +85,20 @@ public class FileProcessor {
         } catch(Exception exc) { }
 
         return contents;
+    }
+
+    public static Font getConsoleFont() {
+        Font consoleFont = null;
+
+        try {
+            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/font/lucon.ttf");
+
+            consoleFont = Font.createFont(Font.PLAIN, is);
+
+            is.close();
+
+        } catch(Exception exc) { }
+
+        return consoleFont;
     }
 }

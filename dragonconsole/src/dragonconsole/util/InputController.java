@@ -84,6 +84,14 @@ public class InputController extends DocumentFilter {
         return BYPASS;
     }
 
+    public void reset() {
+        rangeStart = 0;
+        rangeEnd = 0;
+        protect = false;
+        input = new InputString("");
+        isReceivingInput = false;
+    }
+
     public void setInput(String newInput) {
         if (isReceivingInput && isInfiniteInput()) {
             StyledDocument doc = console.getStyledDocument();
@@ -189,6 +197,15 @@ public class InputController extends DocumentFilter {
             return rangeStart;
         else
             return -1;
+    }
+
+    public void clearText() {
+        reset();
+        bypassRemove = true;
+        StyledDocument doc = console.getStyledDocument();
+        try {
+            doc.remove(0, doc.getLength());
+        } catch(Exception exc) { }
     }
 
     public int getInputRangeEnd() {

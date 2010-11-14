@@ -103,7 +103,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     private InputController inputControl;
 
     // Console GUI (fonts/colors/etc)
-    private Font consoleFont = new Font("Monospaced", Font.BOLD, 14);
+    private Font consoleFont;
     private PromptPanel consolePrompt = new PromptPanel(">> ");
     private ArrayList<TextColor> textColors;
 
@@ -241,6 +241,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         inputColor = "bw";
 
         setInputAttribute();
+        clearConsole();
+        printDefault();
     }
 
     /** Sets the colors so the console appears to be a standard Gray on Black.
@@ -263,6 +265,12 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         inputColor = "xb";
 
         setInputAttribute();
+        clearConsole();
+        printDefault();
+    }
+
+    public void clearConsole() {
+        inputControl.clearText();
     }
 
     /** Sets the Input AttributeSet for the input control to the given input color.
@@ -350,6 +358,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         inputControl = new InputController(null);
 
         // Setting the Font properly for the Prompt
+        consoleFont = FileProcessor.getConsoleFont().deriveFont(Font.BOLD, 14f);
         consolePrompt.setPromptFont(consoleFont);
 
         if (useInlineInput) {
@@ -401,6 +410,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
 
         // Get the outputPanes StyledDocument and add the DocumentFilter to it
         consoleStyledDocument = consolePane.getStyledDocument();
+
         if (useInlineInput)
             ((AbstractDocument)consoleStyledDocument).setDocumentFilter(inputControl);
 
@@ -434,9 +444,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         else
             add(splitPane, BorderLayout.CENTER);
 
-        setDefaultStyle();
         setOutputStyles();
-        printDefault();
+        setDefaultStyle();
     }
 
     /** Prints the logo for DragonConsole if <code>printDefaultMessage</code> is <code>true</code>
@@ -446,7 +455,11 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     private void printDefault() {
         if (printDefaultMessage) {
             try {
-                append(FileProcessor.readDCResource("colors"));
+                String color = "b";
+                if (consolePane.getBackground().equals(Color.WHITE))
+                    color = "w";
+
+                append(FileProcessor.readDCResource("colors_" + color));
             } catch(Exception exc) { }
         }
     }
@@ -519,6 +532,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         consolePane.setFont(consoleFont);
         inputArea.setFont(consoleFont);
         consolePrompt.setPromptFont(consoleFont);
+
+        DocumentStyler.changeFont(consoleStyledDocument, consoleFont);
     }
 
     /** Sets the default system color for system messages passed to the console.
@@ -874,12 +889,12 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         if (inputControl.isReceivingInput() && e.getDot() == e.getMark()) {            
             if (location < inputControl.getInputRangeStart()) {
                 consolePane.setCaretPosition(inputControl.getInputRangeStart());
-                Toolkit.getDefaultToolkit().beep();
+                //Toolkit.getDefaultToolkit().beep();
             }
 
             if (!(inputControl.isInfiniteInput()) && location > inputControl.getInputRangeEnd()) {
                 consolePane.setCaretPosition(inputControl.getInputRangeEnd());
-                Toolkit.getDefaultToolkit().beep();
+                //Toolkit.getDefaultToolkit().beep();
             }      
         }
     }  

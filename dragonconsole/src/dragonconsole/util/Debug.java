@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package debug;
+package dragonconsole.util;
 
 /**
  *

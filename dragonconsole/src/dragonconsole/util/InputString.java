@@ -41,7 +41,7 @@ public class InputString {
 
     public void append(String s) {
         this.s += s;
-        System.out.println("\"" + this.s + "\" - APPEND");
+        Debug.print("\"" + this.s + "\" - APPEND");
     }
 
     public void insert(int location, String s) {
@@ -49,7 +49,7 @@ public class InputString {
             String before = this.s.substring(0, location);
             String after = this.s.substring(location);
             this.set(before + s + after);
-            System.out.println("\"" + this.s + "\" - INSERT");
+            Debug.print("\"" + this.s + "\" - INSERT");
         }
     }
 
@@ -64,7 +64,7 @@ public class InputString {
 
             set(before + after);
 
-            debug.Debug.print("\"" + this.s + "\" - REMOVE");
+            Debug.print("\"" + this.s + "\" - REMOVE");
         }
     }
 
@@ -79,7 +79,7 @@ public class InputString {
 
             set(before + after + " ");
 
-            debug.Debug.print("\"" + this.s + "\" - RANGE REMOVE");
+            Debug.print("\"" + this.s + "\" - RANGE REMOVE");
         }
     }
 
@@ -89,7 +89,7 @@ public class InputString {
             String after = this.s.substring(location, this.s.length() - 1);
             this.set(before + s + after);
 
-            debug.Debug.print("\"" + this.s + "\" - RANGE INSERT");
+            Debug.print("\"" + this.s + "\" - RANGE INSERT");
             return true;
         }
 
@@ -103,7 +103,7 @@ public class InputString {
             String after = this.s.substring(end);
             set(before + s + after);
 
-            debug.Debug.print("\"" + this.s + "\" - REPLACE");
+            Debug.print("\"" + this.s + "\" - REPLACE");
         } else
             append(s);
     }

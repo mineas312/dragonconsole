@@ -103,7 +103,7 @@ public class DocumentStyler {
     private static StyledDocument addNewStyle(StyledDocument documentToUpdate,
             Font styleFont, TextColor foreground, TextColor background) {
         String styleName = "" + foreground.getCharCode() + background.getCharCode();
-
+        
         Style parentStyle = StyleContext.getDefaultStyleContext()
                 .getStyle(StyleContext.DEFAULT_STYLE);
 
@@ -126,6 +126,35 @@ public class DocumentStyler {
         StyleConstants.setFontSize(style, newFont.getSize());
         StyleConstants.setBold(style, newFont.isBold());
         StyleConstants.setItalic(style, newFont.isItalic());
+    }
+    
+    /** Sets the Font options for a SimpleAttributeSet so that it contains the 
+     * same Font style as newFont. This method is a helper, it sets the 
+     * SimpleAttributeSets Font Family, Font Size, and whether or not the Font 
+     * is Bold and/or Italic.
+     * @param sas The SimpleAttributeSet the Font style needs to be saved in.
+     * @param newFont The newFont that needs to be set to the Style object.
+     */
+    private static void setSASFont(SimpleAttributeSet sas, Font newFont) {
+        StyleConstants.setFontFamily(sas, newFont.getFamily());
+        StyleConstants.setFontSize(sas, newFont.getSize());
+        StyleConstants.setBold(sas, newFont.isBold());
+        StyleConstants.setItalic(sas, newFont.isItalic());
+    }
+
+    /** Changes the font for all text in already in a Document.
+     * Changes the Font attribute of all styles currently in a Document to a
+     * new Font, this method is called when the consoleFont is changed.
+     * @param documentToUpdate The StyledDocument containing the text to be changed.
+     * @param newFont The new Font to show in the StyledDocument.
+     */
+    public static StyledDocument changeFont(StyledDocument documentToUpdate, Font newFont) {
+        SimpleAttributeSet newFontStyle = new SimpleAttributeSet();
+        setSASFont(newFontStyle, newFont);
+        documentToUpdate.setParagraphAttributes(0, documentToUpdate.getLength(),
+                newFontStyle, true);
+
+        return documentToUpdate;
     }
 
     /**  Adds a new color to the StyledDocuemnt with every available background color.
