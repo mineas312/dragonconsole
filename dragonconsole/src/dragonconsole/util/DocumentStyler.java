@@ -56,7 +56,7 @@ public class DocumentStyler {
                 .getStyle(StyleContext.DEFAULT_STYLE);
 
         Style temp = documentToUpdate.addStyle(styleName, parentStyle);
-        setStyleFont(temp, styleFont);
+        //setStyleFont(temp, styleFont);
         StyleConstants.setForeground(temp, styleForeground);
     
         return documentToUpdate;
@@ -83,7 +83,7 @@ public class DocumentStyler {
                 .getStyle(StyleContext.DEFAULT_STYLE);
 
         Style temp = documentToUpdate.addStyle(styleName, parentStyle);
-        setStyleFont(temp, styleFont);
+        //setStyleFont(temp, styleFont);
         StyleConstants.setForeground(temp, styleForeground);
         StyleConstants.setBackground(temp, styleBackground);
 
@@ -108,7 +108,7 @@ public class DocumentStyler {
                 .getStyle(StyleContext.DEFAULT_STYLE);
 
         Style temp = documentToUpdate.addStyle(styleName, parentStyle);
-        setStyleFont(temp, styleFont);
+        //setStyleFont(temp, styleFont);
         StyleConstants.setForeground(temp, foreground.getColor());
         StyleConstants.setBackground(temp, background.getColor());
 
@@ -134,12 +134,15 @@ public class DocumentStyler {
      * is Bold and/or Italic.
      * @param sas The SimpleAttributeSet the Font style needs to be saved in.
      * @param newFont The newFont that needs to be set to the Style object.
+     * @return The modified SimpleAttributeSet.
      */
-    private static void setSASFont(SimpleAttributeSet sas, Font newFont) {
+    private static SimpleAttributeSet setSASFont(SimpleAttributeSet sas, Font newFont) {
         StyleConstants.setFontFamily(sas, newFont.getFamily());
         StyleConstants.setFontSize(sas, newFont.getSize());
         StyleConstants.setBold(sas, newFont.isBold());
         StyleConstants.setItalic(sas, newFont.isItalic());
+
+        return sas;
     }
 
     /** Changes the font for all text in already in a Document.
@@ -150,9 +153,8 @@ public class DocumentStyler {
      */
     public static StyledDocument changeFont(StyledDocument documentToUpdate, Font newFont) {
         SimpleAttributeSet newFontStyle = new SimpleAttributeSet();
-        setSASFont(newFontStyle, newFont);
-        documentToUpdate.setParagraphAttributes(0, documentToUpdate.getLength(),
-                newFontStyle, true);
+        newFontStyle = setSASFont(newFontStyle, newFont);
+        documentToUpdate.setCharacterAttributes(0, documentToUpdate.getLength(), newFontStyle, false);
 
         return documentToUpdate;
     }

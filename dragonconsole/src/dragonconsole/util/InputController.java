@@ -41,6 +41,8 @@ public class InputController extends DocumentFilter {
     private AttributeSet inputAttr;
     private JTextPane console;
     private boolean bypassRemove = false;
+    private boolean ignoreInput = false;
+    private StoredInput stored = null;
 
     /** Default constructor
      * rangeStart - The beginning of the input range, will always contain a
@@ -90,6 +92,10 @@ public class InputController extends DocumentFilter {
         protect = false;
         input = new InputString("");
         isReceivingInput = false;
+    }
+
+    public void setIgnoreInput(boolean ignoreInput) {
+        this.ignoreInput = ignoreInput;
     }
 
     public void setInput(String newInput) {
@@ -282,6 +288,19 @@ public class InputController extends DocumentFilter {
         return pString;
     }
 
+    private String restoreProtectedString(String string) {
+        String returnString = "";
+
+        for (int i = 0; i < string.length(); i++) {
+            if (string.charAt(i) != ' ')
+                returnString += protectedChar;
+            else
+                returnString += " ";
+        }
+
+        return returnString;
+    }
+
     @Override
     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
         if (string.startsWith(BYPASS)) {
@@ -300,67 +319,148 @@ public class InputController extends DocumentFilter {
 
     @Override
     public void replace(FilterBypass fb, int offset, int length, String string, AttributeSet attr) throws BadLocationException {
-        if (isReceivingInput && rangeStart > 0) {
-            if (offset >= rangeStart) {
-                if (!isInfiniteInput() && (offset + 1) <= rangeEnd) {
-                    boolean inserted = input.rangeInsert((offset - rangeStart), string);
+        if (string.startsWith(BYPASS)) {
+            String newString = string.substring(BYPASS.length());
+            if (protect)
+                newString = restoreProtectedString(newString);
+            
+            fb.replace(offset, length, newString, attr);
+            
+        } else {
+            if (!ignoreInput) {
+                if (isReceivingInput && rangeStart > 0) {
+                    if (offset >= rangeStart) {
+                        if (!isInfiniteInput() && (offset + 1) <= rangeEnd) {
+                            boolean inserted = input.rangeInsert((offset - rangeStart), string);
 
-                    if (inserted) {
-                        if (protect)
-                            fb.replace(offset, length, protectedChar, inputAttr);
-                        else
-                            fb.replace(offset, length, string, inputAttr);
+                            if (inserted) {
+                                if (protect)
+                                    fb.replace(offset, length, protectedChar, inputAttr);
+                                else
+                                    fb.replace(offset, length, string, inputAttr);
 
-                        if (input.endIsEmpty())
-                            fb.remove(rangeEnd - 1, 1);
-                        else
-                            fb.remove(rangeEnd, 1);
+                                if (input.endIsEmpty())
+                                    fb.remove(rangeEnd - 1, 1);
+                                else
+                                    fb.remove(rangeEnd, 1);
+                            } else
+                                Toolkit.getDefaultToolkit().beep();
+
+
+
+                        } else if (isInfiniteInput()) {
+                            if (protect)
+                                fb.replace(offset, length, protectedChar, inputAttr);
+                            else
+                                fb.replace(offset, length, string, inputAttr);
+
+                            input.replace((offset - rangeStart), length, string);
+                        } else
+                            Toolkit.getDefaultToolkit().beep();
                     } else
                         Toolkit.getDefaultToolkit().beep();
-
-
-
-                } else if (isInfiniteInput()) {
-                    if (protect)
-                        fb.replace(offset, length, protectedChar, inputAttr);
-                    else
-                        fb.replace(offset, length, string, inputAttr);
-
-                    input.replace((offset - rangeStart), length, string);
                 } else
                     Toolkit.getDefaultToolkit().beep();
-            } else
-                Toolkit.getDefaultToolkit().beep();
-        } else
-            Toolkit.getDefaultToolkit().beep();
+            }
+        }
     }
 
     @Override
     public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-        if (!bypassRemove) {
-            if (isReceivingInput && rangeStart > 0) {
-                if (!(offset < rangeStart)) {
-                    if (!isInfiniteInput()) {
-                        fb.remove(offset, length);
-                        fb.insertString((rangeEnd - 1), " ", inputAttr);
+        if (!ignoreInput) {
+            if (!bypassRemove) {
+                if (isReceivingInput && rangeStart > 0) {
+                    if (!(offset < rangeStart)) {
+                        if (!isInfiniteInput()) {
+                            fb.remove(offset, length);
+                            fb.insertString((rangeEnd - 1), " ", inputAttr);
 
-                        if (console.getCaretPosition() == rangeEnd)
-                            console.setCaretPosition(rangeEnd - 1);
+                            if (console.getCaretPosition() == rangeEnd)
+                                console.setCaretPosition(rangeEnd - 1);
+                        } else
+                            fb.remove(offset, length);
+
+
+                        if (!isInfiniteInput())
+                            input.rangeRemove((offset - rangeStart), length);
+                        else
+                            input.remove((offset - rangeStart), length);
                     } else
-                        fb.remove(offset, length);
-
-
-                    if (!isInfiniteInput())
-                        input.rangeRemove((offset - rangeStart), length);
-                    else
-                        input.remove((offset - rangeStart), length);
+                        Toolkit.getDefaultToolkit().beep();
                 } else
                     Toolkit.getDefaultToolkit().beep();
-            } else
-                Toolkit.getDefaultToolkit().beep();
-        } else {
-            bypassRemove = false;
-            fb.remove(offset, length);
+            } else {
+                bypassRemove = false;
+                fb.remove(offset, length);
+            }
+        }
+    }
+    
+    public boolean hasStoredInput() {
+        return (stored != null);
+    }
+    
+    public void storeInput() {
+        stored = new StoredInput(isInfiniteInput(), protect, (rangeEnd - rangeStart), input);
+        reset();
+    }
+    
+    public boolean restoreInput() {
+        if (stored != null && isReceivingInput) {
+            if (stored.matches(isInfiniteInput(), protect, (rangeEnd - rangeStart))) {
+                input = stored.getInput();
+                
+                int end;
+                if (isInfiniteInput())
+                    end = 0;
+                else
+                    end = rangeEnd - rangeStart;
+                try {
+                    ((AbstractDocument)console.getStyledDocument()).replace(rangeStart, end, BYPASS + input.get(), inputAttr);
+                } catch (Exception exc) { }
+
+                stored = null;
+
+                return true;
+            }
+        }
+
+        stored = null;
+
+        return false;
+    }
+
+    private class StoredInput {
+        private boolean isInfinite;
+        private boolean protect;
+        private int range;
+        private InputString input;
+
+        public StoredInput(boolean isInfinite, boolean protect, int range, InputString input) {
+            this.isInfinite = isInfinite;
+            this.protect = protect;
+            this.range = range;
+            this.input = input;
+        }
+
+        public boolean matches(boolean isInfinite, boolean protect, int range) {
+            if (this.isInfinite == isInfinite) {
+                if (!this.isInfinite) {
+                    if (this.range == range && this.protect == protect)
+                        return true;
+                } else {
+                    if (this.protect == protect)
+                        return true;
+                    else
+                        return false;
+                }
+            }
+
+            return false;
+        }
+
+        public InputString getInput() {
+            return input;
         }
     }
 }

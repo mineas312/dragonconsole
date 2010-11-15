@@ -92,6 +92,10 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     private static final String BUG_FIX = "0"; // Bug fix for current version/minor change
     private static final String VER_TAG = "b"; // Alpha/Beta tag, blank for non-alpha/beta releases.
 
+    // Default Finals
+    private static final int DEFAULT_WIDTH = 725;
+    private static final int DEFAULT_HEIGHT = 450;
+
     // GUI
     private JTextPane consolePane;
     private JTextArea inputArea;
@@ -138,7 +142,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     public DragonConsole() {
         super();
-        this.setSize(800, 600);
+        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = true;
         this.printDefaultMessage = true;
 
@@ -150,7 +154,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     public DragonConsole(boolean useInlineInput) {
         super();
-        this.setSize(800, 600);
+        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = false;
 
@@ -165,7 +169,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     public DragonConsole(boolean useInlineInput, boolean printDefaultMessage) {
         super();
-        this.setSize(800, 600);
+        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = printDefaultMessage;
 
@@ -449,7 +453,9 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     }
 
     /** Prints the logo for DragonConsole if <code>printDefaultMessage</code> is <code>true</code>
-     * Prints the DragonConsole logo that is saved in dc_logo.txt in the .jar
+     * Prints the DragonConsole logo that is saved in logo_b or lobo_w in the
+     * .jar depending on if the background color is White or not White.
+     * (logo_w is for White backgrounds).
      * if <code>printDefaultMessage</code> is set to <code>true</code>.
      */
     private void printDefault() {
@@ -583,6 +589,16 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         setInputAttribute();
     }
 
+    /** Tells the DragonConsole whether to ignore input from the user or not.
+     * This method can be used to ignore input scripts passed to the console
+     * via append() and ignore any input from the user.
+     * @param ignoreInput true if Input should be disabled, or false if Input should be enabled.
+     */
+    public void setIgnoreInput(boolean ignoreInput) {
+        this.ignoreInput = ignoreInput;
+        this.inputControl.setIgnoreInput(ignoreInput);
+    }
+
     /** Gets a string representation of the current console version.
      * Gets a string representation of the current console version. The version
      * string is formatted as "v" + Version number + Mini Release Version +
@@ -593,6 +609,17 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     public String getVersion() {
         return "v" + VERSION + "." + SUB_VER + "." + BUG_FIX + VER_TAG;
+    }
+
+    /** Tells the Console whether to save input if interrupted.
+     * This method tells the Console if it should carry over input if the user
+     * is interrupted by a message while typing or not. Input will only be
+     * carried over if the previous input and the current input match (have the
+     * same parameters) otherwise the previous input will be lost.
+     * @param inputCarryOver <code>true</code> to carry input over <code>false</code> to ignore it.
+     */
+    public void setInputCarryOver(boolean inputCarryOver) {
+        this.inputCarryOver = inputCarryOver;
     }
 
     /**
@@ -651,6 +678,10 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      * @param outputToProcess The string to be color coded and printed.
      */
     public void append(String outputToProcess) {
+        if (!ignoreInput && inputCarryOver && inputControl.isReceivingInput()) {
+            inputControl.storeInput();
+        }
+
         boolean hasInput = false;
         String processed = "";
         String style = defaultColor;
@@ -670,7 +701,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
 
                 } else
                     processed += outputToProcess.charAt(i);
-            } else if (outputToProcess.charAt(i) == '%') {
+            } else if (outputToProcess.charAt(i) == '%' && !ignoreInput) {
                 if ((i + 1) < outputToProcess.length() &&
                         outputToProcess.charAt(i + 1) == '%') {
                     processed += "%";
@@ -716,11 +747,34 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     private void setConsoleCaretPosition() {
         int caretLocation = inputControl.getInputRangeStart();
-        if (caretLocation > -1)
-            consolePane.setCaretPosition(caretLocation);
-        else
-            consolePane.setCaretPosition(consoleStyledDocument.getLength());
+        if (!ignoreInput) {
+            if (caretLocation > -1)
+                consolePane.setCaretPosition(caretLocation);
+            else
+                consolePane.setCaretPosition(consoleStyledDocument.getLength());
 
+            if (inputCarryOver && inputControl.hasStoredInput())
+                inputControl.restoreInput();
+
+            setScrollPaneMax();
+        }
+        else {
+            consolePane.setCaretPosition(0);
+        }
+
+    }
+
+    private void setScrollPaneMax() {
+        final JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
+        new Thread() {
+            public void run() {
+                try {
+                    sleep(100); // Time out for a tenth of a second
+                    if (vBar.isVisible())
+                        vBar.setValue(vBar.getMaximum());
+                } catch (Exception exc) { }
+            }
+        }.start();
     }
 
     /** Sends a message to be output with the default system color.
@@ -887,16 +941,18 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         Caret caret = consolePane.getCaret();
         int location = e.getDot();
 
-        if (inputControl.isReceivingInput() && e.getDot() == e.getMark()) {            
-            if (location < inputControl.getInputRangeStart()) {
-                consolePane.setCaretPosition(inputControl.getInputRangeStart());
-                //Toolkit.getDefaultToolkit().beep();
-            }
+        if (!ignoreInput) {
+            if (inputControl.isReceivingInput() && e.getDot() == e.getMark()) {
+                if (location < inputControl.getInputRangeStart()) {
+                    consolePane.setCaretPosition(inputControl.getInputRangeStart());
+                    //Toolkit.getDefaultToolkit().beep();
+                }
 
-            if (!(inputControl.isInfiniteInput()) && location > inputControl.getInputRangeEnd()) {
-                consolePane.setCaretPosition(inputControl.getInputRangeEnd());
-                //Toolkit.getDefaultToolkit().beep();
-            }      
+                if (!(inputControl.isInfiniteInput()) && location > inputControl.getInputRangeEnd()) {
+                    consolePane.setCaretPosition(inputControl.getInputRangeEnd());
+                    //Toolkit.getDefaultToolkit().beep();
+                }
+            }
         }
     }  
 }

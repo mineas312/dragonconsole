@@ -34,9 +34,15 @@ public class Main {
                 console.setCommandProcessor(processor);
                 //console.append("&ob>> ");
 
-                console.append("╔══════════╗\n"
-                             + "║%i10+;║\n"
-                             + "╚══════════╝");
+                console.append("+----------+\n"
+                             + "|%i10;|\n"
+                             + "+----------+");
+
+                //console.append("╔══════════╗\n"
+                //             + "║%i10;║");
+
+                console.setConsoleFont(new Font("Inconsolata", Font.PLAIN, 14));
+
                 frame.setVisible(true);
             }
         });
