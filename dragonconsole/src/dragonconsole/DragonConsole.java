@@ -362,7 +362,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         inputControl = new InputController(null);
 
         // Setting the Font properly for the Prompt
-        consoleFont = FileProcessor.getConsoleFont().deriveFont(Font.BOLD, 14f);
+        consoleFont = FileProcessor.getConsoleFont().deriveFont(Font.PLAIN, 14f);
         consolePrompt.setPromptFont(consoleFont);
 
         if (useInlineInput) {

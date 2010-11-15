@@ -91,7 +91,7 @@ public class FileProcessor {
         Font consoleFont = null;
 
         try {
-            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/font/lucon.ttf");
+            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/font/dvsm.ttf");
 
             consoleFont = Font.createFont(Font.PLAIN, is);
 

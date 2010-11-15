@@ -32,16 +32,11 @@ public class Main {
                 DragonConsoleFrame frame = new DragonConsoleFrame(console);
                 CommandProcessor processor = new CommandProcessor();
                 console.setCommandProcessor(processor);
-                //console.append("&ob>> ");
+                console.append("&ob>> ");
 
-                console.append("+----------+\n"
-                             + "|%i10;|\n"
-                             + "+----------+");
-
-                //console.append("╔══════════╗\n"
-                //             + "║%i10;║");
-
-                console.setConsoleFont(new Font("Inconsolata", Font.PLAIN, 14));
+                //console.append("+----------+\n"
+                //             + "|%i10;|\n"
+                //             + "+----------+");
 
                 frame.setVisible(true);
             }
