@@ -20,6 +20,9 @@
  * THE SOFTWARE.
  */
 
+import com.dragonconsole.DragonConsole;
+import com.dragonconsole.CommandProcessor;
+import com.dragonconsole.DragonConsoleFrame;
 import dragonconsole.*;
 import java.awt.Color;
 import java.awt.Font;

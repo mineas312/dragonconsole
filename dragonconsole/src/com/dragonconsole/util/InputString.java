@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole.util;
+package com.dragonconsole.util;
 
 /**
  * DCString acts like a slightly modified String object class that includes

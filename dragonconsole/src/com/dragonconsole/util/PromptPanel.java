@@ -20,25 +20,42 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole.util;
+package com.dragonconsole.util;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  *
  * @author Brandon E Buck
  */
-public class Debug {
-    private static boolean on = false;
+public class PromptPanel extends JPanel {
+    private JLabel promptLabel;
 
-    public static void turnOn() {
-        on = true;
+    public PromptPanel(String prompt) {
+        promptLabel = new JLabel(prompt);
+        promptLabel.setOpaque(false);
+        setLayout(new BorderLayout());
+        add(promptLabel, BorderLayout.NORTH);
     }
 
-    public static void turnOff() {
-        on = false;
+    public void setPrompt(String newPrompt) {
+        promptLabel.setText(newPrompt);
     }
 
-    public static void print(String output) {
-        if (on)
-            System.out.println(output);
+    public String getPrompt() {
+        return promptLabel.getText();
+    }
+
+    public void setPromptFont(Font font) {
+        promptLabel.setFont(font);
+        promptLabel.revalidate();
+        promptLabel.repaint();
+    }
+
+    public void setPromptForeground(Color c) {
+        promptLabel.setForeground(c);
+        promptLabel.revalidate();
+        promptLabel.repaint();
     }
 }

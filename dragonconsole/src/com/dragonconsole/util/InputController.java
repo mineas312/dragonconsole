@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole.util;
+package com.dragonconsole.util;
 
 import javax.swing.JTextPane;
 import javax.swing.text.*;

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole;
+package com.dragonconsole;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,8 +28,8 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import java.util.ArrayList;
-import dragonconsole.util.*;
-import dragonconsole.file.*;
+import com.dragonconsole.util.*;
+import com.dragonconsole.file.*;
 import java.awt.datatransfer.DataFlavor;;
 
 /**
@@ -712,8 +712,10 @@ public class DragonConsole extends JPanel implements KeyListener,
         }
 
         boolean hasInput = false;
+        boolean ANSIStyle = false;
         String processed = "";
         String style = defaultColor;
+        String ANSIAttribute = "";
 
         for (int i = 0; i < outputToProcess.length(); i++) {
             if (outputToProcess.charAt(i) == colorCodeChar) {
@@ -730,7 +732,15 @@ public class DragonConsole extends JPanel implements KeyListener,
 
                 } else
                     processed += outputToProcess.charAt(i);
+
+            } else if (outputToProcess.charAt(i) == '\033') {
+                if (outputToProcess.indexOf('m', i) < outputToProcess.length()) {
+                    print(processed, style);
+                    processed = "";
+                    style = defaultColor;
+                }
             } else if (outputToProcess.charAt(i) == '%' && !ignoreInput) {
+
                 if ((i + 1) < outputToProcess.length() &&
                         outputToProcess.charAt(i + 1) == '%') {
                     processed += "%";
@@ -740,13 +750,14 @@ public class DragonConsole extends JPanel implements KeyListener,
                     if (outputToProcess.charAt(i + 1) == 'i') {
                         hasInput = true;
                         String inputCommand = outputToProcess.substring(i, outputToProcess.indexOf(';', i) + 1);
+
                         if (inputControl.setInputStyle(inputCommand)) {
-                            
                             print(processed, style); // Print what's been processed in it's color
                             inputControl.setRangeStart(consoleStyledDocument.getLength());
                             print(inputControl.getInputRangeString(), defaultColor); // Print the blank space if the input is not infinite
-                            
+
                             processed = ""; // Clear processed for the next series of colored text
+
                         } else {
                             outputToProcess = ""; // Clear out the output to process if input is infinite, which means anything after the input string is ignored.
                             print(processed, style);
@@ -767,6 +778,21 @@ public class DragonConsole extends JPanel implements KeyListener,
             inputControl.setBasicInput(consoleStyledDocument.getLength());
 
         setConsoleCaretPosition();
+    }
+
+    /** Processes the String for DCScript if a DCScript Character is found in append()
+     * This method pulls out and processes a piece of DCScript is DCScript is
+     * found in append().
+     * @param output The output that contains a piece of DCScript and needs to be processed.
+     * @param index The current index being used to process the String, needed to work within output.
+     * @return The index in which to continue processing the passed String.
+     */
+    private int processDCScript(String output, String processed, String style, int index) {
+        int modifier = 0;
+
+
+
+        return index + modifier;
     }
 
     /** Sets the caret position in the ouputPane according to the input controller.

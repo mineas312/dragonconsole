@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole;
+package com.dragonconsole;
 
 import javax.swing.JFrame;
 import java.awt.*;

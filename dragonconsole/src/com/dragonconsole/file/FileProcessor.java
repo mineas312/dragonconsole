@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole.file;
+package com.dragonconsole.file;
 
 import java.io.*;
 import java.awt.Font;
@@ -68,7 +68,7 @@ public class FileProcessor {
         String contents = "";
         
         try {
-            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/resources/" + file);
+            InputStream is = FileProcessor.class.getResourceAsStream("/com/dragonconsole/resources/" + file);
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader in = new BufferedReader(isr);
 
@@ -91,7 +91,7 @@ public class FileProcessor {
         Font consoleFont = null;
 
         try {
-            InputStream is = FileProcessor.class.getResourceAsStream("/dragonconsole/font/dvsm.ttf");
+            InputStream is = FileProcessor.class.getResourceAsStream("/com/dragonconsole/font/dvsm.ttf");
 
             consoleFont = Font.createFont(Font.PLAIN, is);
 

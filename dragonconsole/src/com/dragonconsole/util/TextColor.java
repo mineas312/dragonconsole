@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package dragonconsole.util;
+package com.dragonconsole.util;
 
 import java.awt.Color;
 
