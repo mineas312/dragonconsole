@@ -43,6 +43,7 @@ public class InputController extends DocumentFilter {
     private boolean bypassRemove = false;
     private boolean ignoreInput = false;
     private StoredInput stored = null;
+    private boolean consoleInputMethod = true; // true for inline input and false for separate input
 
     /** Default constructor
      * rangeStart - The beginning of the input range, will always contain a
@@ -94,6 +95,10 @@ public class InputController extends DocumentFilter {
         isReceivingInput = false;
     }
 
+    public void setConsoleInputMethod(boolean consoleInputMethod) {
+        this.consoleInputMethod = consoleInputMethod;
+    }
+
     public void setIgnoreInput(boolean ignoreInput) {
         this.ignoreInput = ignoreInput;
     }
@@ -105,15 +110,19 @@ public class InputController extends DocumentFilter {
                 int length = doc.getLength() - rangeStart;
                 bypassRemove = true;
                 doc.remove(rangeStart, length);
-                
+
+                String prefix = "";
+                if (consoleInputMethod) // True if inline
+                    prefix = BYPASS;
+
                 if (protect)
-                    doc.insertString(rangeStart, BYPASS + getProtectedString(newInput.length()), inputAttr);
+                    doc.insertString(rangeStart, prefix + getProtectedString(newInput.length()), inputAttr);
                 else
-                    doc.insertString(rangeStart, BYPASS + newInput, inputAttr);
+                    doc.insertString(rangeStart, prefix + newInput, inputAttr);
 
                 input = new InputString("");
                 input.append(newInput);
-            } catch (Exception exc) { System.out.println("Exception"); }
+            } catch (Exception exc) { }
         }
     }
 
@@ -416,7 +425,11 @@ public class InputController extends DocumentFilter {
                 else
                     end = rangeEnd - rangeStart;
                 try {
-                    ((AbstractDocument)console.getStyledDocument()).replace(rangeStart, end, BYPASS + input.get(), inputAttr);
+                    if (consoleInputMethod)
+                        ((AbstractDocument)console.getStyledDocument()).replace(rangeStart, end, BYPASS + input.get(), inputAttr);
+                    else
+                        ((AbstractDocument)console.getStyledDocument()).replace(rangeStart, end, input.get(), inputAttr);
+                
                 } catch (Exception exc) { }
 
                 stored = null;

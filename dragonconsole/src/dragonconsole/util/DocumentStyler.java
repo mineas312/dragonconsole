@@ -21,10 +21,10 @@
  */
 
 package dragonconsole.util;
+
 import java.awt.*;
 import javax.swing.text.*;
 import java.util.ArrayList;
-import dragonconsole.util.TextColor;
 
 /** Adds and updates the static styles as well as handling new style creation.
  * This class is designed to control and make easier the addition of text

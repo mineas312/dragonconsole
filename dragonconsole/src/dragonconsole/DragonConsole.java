@@ -85,7 +85,9 @@ import java.awt.datatransfer.DataFlavor;;
  * @since October 30, 2009
  * @version 3.0.0
  */
-public class DragonConsole extends JPanel implements KeyListener, CaretListener {
+public class DragonConsole extends JPanel implements KeyListener, 
+                                                       CaretListener,
+                                                       AdjustmentListener {
     // Version variables
     private static final String VERSION = "3"; // Version Number
     private static final String SUB_VER = "0"; // Sub-version or minor change
@@ -122,6 +124,11 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
     private boolean useInlineInput = true; // Determines if the cnosole uses inline input or not
     private boolean ignoreInput = false; // Allows the Programmer to Disble input
     private boolean inputCarryOver = true; // If output is sent while input is being receivied, saves input for next input area
+    // Tells the console to keep the ScrollBar maxed when new content is added, or to ignore ScrollBar changes the user has adjusted it away from max.
+    private boolean alwaysScrollMax = false;
+    private boolean scrollBarMax = true; // Tells the setConsoleCaretPosition() to max out the ScrollBar as well or not
+    private boolean ignoreAdjustment = false; // Tells the Adjustment Listener to ignore any Adjustments to the Scrollbar
+    private int adjustmentCount = 0; // The JScrollBar is adjusted twice in a row, this will count up to ignore both, hopefully
 
     // Default text variables
     private String defaultColor = "xb";
@@ -156,7 +163,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         super();
         this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = useInlineInput;
-        this.printDefaultMessage = false;
+        this.printDefaultMessage = true;
 
         this.initializeConsole();
     }
@@ -290,14 +297,37 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         }
     }
 
-    private Color getStyleColorFromCode(char foreground) {
+    /** Scans the TextColor list for the code passed and returns the color corresponding to it.
+     * Scans the list of TextColors added to the console for one matching the
+     * <code>char code</code> passed and returns the Color that corresponds to
+     * the <code>char code</code> given. If no Color that matches the
+     * <code>code</code> is found returns <code>Color.WHITE</code>
+     * @param code The <code>char code</code> to find the corresponding Color for.
+     * @return The Color corresponding to the given <code>code</code> or White if none is found.
+     */
+    private Color getStyleColorFromCode(char code) {
         for (int i = 0; i < textColors.size(); i++) {
             TextColor tc = textColors.get(i);
-            if (tc.equals(foreground))
+            if (tc.equals(code))
                 return tc.getColor();
         }
 
         return Color.WHITE;
+    }
+
+    /** Tells the Console how to handled the ScrollBar when new text is added to the Console.
+     * Allows the programmer to set the method in which to control the Vertical
+     * ScrollBar. If <code>true</code> is passed then anytime new text is
+     * added to the <code>consolePane</code> the Vertical JScrollBar will be
+     * set to it's max value. If <code>false</code> is passed then as long as
+     * The JScrollBar is at it's max value when text is added, then it
+     * automatically update to the new max value after the text has been added.
+     * If it's moved from the max value by the user then it will stay at
+     * whatever value it was placed at by the user.
+     * @param alwaysScrollMax The boolean value determining the method on how to control the Vertical JScrollBar.
+     */
+    public void setKeepScrollBarMax(boolean alwaysScrollMax) {
+        this.alwaysScrollMax = alwaysScrollMax;
     }
 
     /** Sets the size of this JPanel.
@@ -382,8 +412,6 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
             consolePane.addKeyListener(this);
             consolePane.addCaretListener(this);
 
-            inputControl.installConsole(consolePane);
-
         } else {
             consolePane = new JTextPane();
             consolePane.setFocusable(false);
@@ -395,6 +423,9 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
         consolePane.setCaretColor(defaultCaret);
         consolePane.setFont(consoleFont);
         consolePane.setBorder(null);
+
+        inputControl.installConsole(consolePane);
+        inputControl.setConsoleInputMethod(useInlineInput);
 
         // Add Copy functionality to the Console
         //   and remove Cut/Paste functionality
@@ -430,9 +461,7 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
 
         consoleScrollPane = new JScrollPane(consolePane);
         consoleScrollPane.setBorder(null);
-
-        JScrollPane inputScrollPane = new JScrollPane(inputArea);
-        inputScrollPane.setBorder(null);
+        consoleScrollPane.getVerticalScrollBar().addAdjustmentListener(this);
 
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(consolePrompt, BorderLayout.WEST);
@@ -756,7 +785,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
             if (inputCarryOver && inputControl.hasStoredInput())
                 inputControl.restoreInput();
 
-            setScrollPaneMax();
+            if (alwaysScrollMax || !alwaysScrollMax && scrollBarMax)
+                setScrollBarMax();
         }
         else {
             consolePane.setCaretPosition(0);
@@ -764,17 +794,19 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
 
     }
 
-    private void setScrollPaneMax() {
+    private void setScrollBarMax() {
         final JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
-        new Thread() {
-            public void run() {
-                try {
-                    sleep(100); // Time out for a tenth of a second
-                    if (vBar.isVisible())
-                        vBar.setValue(vBar.getMaximum());
-                } catch (Exception exc) { }
-            }
-        }.start();
+        if (scrollBarMax) {
+            new Thread() {
+                public void run() {
+                    try {
+                        sleep(100); // Time out for a tenth of a second
+                        if (vBar.isVisible())
+                            vBar.setValue(vBar.getMaximum());
+                    } catch (Exception exc) { }
+                }
+            }.start();
+        }
     }
 
     /** Sends a message to be output with the default system color.
@@ -823,6 +855,8 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
      */
     protected void print(String output, String style) {
         try { // Try to add the colored string to the output area document
+            ignoreAdjustment = true;
+            
             if (useInlineInput)
                 output = inputControl.getBypassPrefix() + output;
 
@@ -865,9 +899,12 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
 
     public void keyPressed(KeyEvent e) {
         if (!useInlineInput) {
-            JScrollBar vbar = consoleScrollPane.getVerticalScrollBar();
-            if (vbar.isVisible()) {
-                vbar.setValue(vbar.getMaximum());
+            if (alwaysScrollMax || (!alwaysScrollMax && scrollBarMax)) {
+                System.out.println("Here to adjust");
+                JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
+                ignoreAdjustment = true;
+                if (vBar.isVisible())
+                    vBar.setValue(vBar.getMaximum() - vBar.getModel().getExtent());
             }
         }
 
@@ -954,5 +991,26 @@ public class DragonConsole extends JPanel implements KeyListener, CaretListener 
                 }
             }
         }
-    }  
+    }
+
+    public void adjustmentValueChanged(AdjustmentEvent e) {
+        JScrollBar sBar = (JScrollBar)e.getSource();
+        
+        if (!ignoreAdjustment) {
+            int value = e.getValue();
+            int maxValue = sBar.getMaximum() - sBar.getModel().getExtent();
+
+            if (value == maxValue)
+                scrollBarMax = true;
+            else if (value < maxValue)
+                scrollBarMax = false;
+        } else {
+            //if (adjustmentCount == 1) {
+                ignoreAdjustment = false;
+            //    adjustmentCount = 0;
+            //}
+            //else
+            //    adjustmentCount++;
+        }
+    }
 }
