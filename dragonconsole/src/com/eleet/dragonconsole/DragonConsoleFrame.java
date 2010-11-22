@@ -86,7 +86,7 @@ public class DragonConsoleFrame extends JFrame {
                 (int)((screenSize.getHeight() / 2) - (this.getHeight() / 2)));
     }
 
-    private DragonConsole getConsole() {
+    public DragonConsole getConsole() {
         return console;
     }
 }

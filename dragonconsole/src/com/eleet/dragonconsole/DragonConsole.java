@@ -375,23 +375,14 @@ public class DragonConsole extends JPanel implements KeyListener,
         super.setPreferredSize(dim);
     }
 
-    /** Overridden to remove functionality, use <code>setSize()</code>
-     * Functionality has been removed, use <code>setSize()</code>
+    /** Sets the Character that should be output for protected input.
+     * Changes the character that should be used for protected input. By default
+     * the character is a "*".
+     * @param protectedChar The new character for protected input.
      */
-    @Override
-    public void setMaximumSize(Dimension dim) { }
-
-    /** Overridden to remove functionality, use <code>setSize()</code>
-     * Functionality has been removed, use <code>setSize()</code>
-     */
-    @Override
-    public void setMinimumSize(Dimension dim) { }
-    
-    /** Overridden to remove functionality, use <code>setSize()</code>
-     * Functionality has been removed, use <code>setSize()</code>
-     */
-    @Override
-    public void setPreferredSize(Dimension dim) { }
+    public void setProtectedCharacter(char protectedChar) {
+        inputControl.setProtectedChar(protectedChar);
+    }
 
     /** Sets all the default standard values for the console.
      * Sets all the values that are shared between all constructors so that

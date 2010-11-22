@@ -20,22 +20,21 @@
  * THE SOFTWARE.
  */
 
-import com.eleet.dragonconsole.*;
+import com.eleet.dragonconsole.DragonConsoleFrame;
 
 public class Main {
     public static void main(String[] args) {
         try {
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                DragonConsole console = new DragonConsole(false);
-                DragonConsoleFrame frame = new DragonConsoleFrame(console);
-                CommandProcessor processor = new CommandProcessor();
-                console.setCommandProcessor(processor);
-                console.setUseANSIColorCodes(true);
-                console.setPrompt(":: ");
-                frame.setVisible(true);
-            }
-        });
-        } catch (Exception exc) { }
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    DragonConsoleFrame dcf = new DragonConsoleFrame();
+                    dcf.getConsole().setCommandProcessor(new DemoProcessor());
+                    dcf.getConsole().append("&ob>> ");
+                    dcf.setVisible(true);
+                }
+            });
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
     }
 }
