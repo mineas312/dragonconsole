@@ -46,7 +46,7 @@ public class ANSI {
     private static final Color N_1 = Color.RED.darker();    // Normal Red
     private static final Color N_2 = Color.GREEN.darker();  // Normal Green
     private static final Color N_3 = Color.YELLOW.darker(); // Normal Yellow
-    private static final Color N_4 = Color.BLUE.darker();   // Normal Blue
+    private static final Color N_4 = new Color(0, 0, 174);  // Normal Blue
     private static final Color N_5 = Color.MAGENTA.darker();// Normal Magenta
     private static final Color N_6 = Color.CYAN.darker();   // Normal Cyan
     private static final Color N_7 = Color.GRAY.brighter(); // Normal Gray
@@ -55,7 +55,7 @@ public class ANSI {
     private static final Color B_1 = Color.RED;             // Bright Red
     private static final Color B_2 = Color.GREEN;           // Bright Green
     private static final Color B_3 = Color.YELLOW;          // Bright Yellow
-    private static final Color B_4 = Color.BLUE;            // Bright Blue
+    private static final Color B_4 = new Color(66, 66, 255);// Bright Blue
     private static final Color B_5 = Color.MAGENTA;         // Bright Magenta
     private static final Color B_6 = Color.CYAN;            // Bright Cyan
     private static final Color B_7 = Color.WHITE;           // Bright Gray

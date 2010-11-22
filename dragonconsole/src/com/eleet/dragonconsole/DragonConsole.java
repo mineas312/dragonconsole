@@ -621,8 +621,8 @@ public class DragonConsole extends JPanel implements KeyListener,
     private void fillConsoleColors() {
         addTextColor('r', Color.RED); // Red
         addTextColor('R', Color.RED.darker()); // Dark Red
-        addTextColor('l', Color.BLUE); // Blue
-        addTextColor('L', Color.BLUE.darker()); // Dark Blue
+        addTextColor('l', new Color(66, 66, 255)); // Blue
+        addTextColor('L', new Color(0, 0, 174)); // Dark Blue
         addTextColor('g', Color.GREEN); // Green
         addTextColor('G', Color.GREEN.darker()); // Dark Green
         addTextColor('y', Color.YELLOW); // Yellow
