@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Brandon E Buck
+ * Copyright (c) 2010 3l33t Software Developers, L.L.C.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package com.dragonconsole.file;
+package com.eleet.dragonconsole.file;
 
 import java.io.*;
 import java.awt.Font;
@@ -68,13 +68,13 @@ public class FileProcessor {
         String contents = "";
         
         try {
-            InputStream is = FileProcessor.class.getResourceAsStream("/com/dragonconsole/resources/" + file);
+            InputStream is = FileProcessor.class.getResourceAsStream("/com/eleet/dragonconsole/resources/" + file);
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader in = new BufferedReader(isr);
 
             String line = in.readLine();
             while (line != null) {
-                contents += line + "\n";
+                contents += line + "\n\r";
                 line = in.readLine();
             }
 
@@ -91,7 +91,7 @@ public class FileProcessor {
         Font consoleFont = null;
 
         try {
-            InputStream is = FileProcessor.class.getResourceAsStream("/com/dragonconsole/font/dvsm.ttf");
+            InputStream is = FileProcessor.class.getResourceAsStream("/com/eleet/dragonconsole/font/dvsm.ttf");
 
             consoleFont = Font.createFont(Font.PLAIN, is);
 

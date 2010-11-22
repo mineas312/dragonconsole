@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Brandon E Buck
+ * Copyright (c) 2010 3l33t Software Developers, L.L.C.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,29 +20,22 @@
  * THE SOFTWARE.
  */
 
-import com.dragonconsole.DragonConsole;
-import com.dragonconsole.CommandProcessor;
-import com.dragonconsole.DragonConsoleFrame;
-import dragonconsole.*;
-import java.awt.Color;
-import java.awt.Font;
+import com.eleet.dragonconsole.*;
 
 public class Main {
     public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                DragonConsole console = new DragonConsole();
+                DragonConsole console = new DragonConsole(false);
                 DragonConsoleFrame frame = new DragonConsoleFrame(console);
                 CommandProcessor processor = new CommandProcessor();
                 console.setCommandProcessor(processor);
-                console.append("&ob>> ");
-
-                //console.append("+----------+\n"
-                //             + "|%i10;|\n"
-                //             + "+----------+");
-
+                console.setUseANSIColorCodes(true);
+                console.setPrompt(":: ");
                 frame.setVisible(true);
             }
         });
+        } catch (Exception exc) { }
     }
 }

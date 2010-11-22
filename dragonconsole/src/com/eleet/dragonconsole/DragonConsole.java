@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Brandon E Buck
+ * Copyright (c) 2010 3l33t Software Developers, L.L.C.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,16 @@
  * THE SOFTWARE.
  */
 
-package com.dragonconsole;
+package com.eleet.dragonconsole;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
-import java.util.ArrayList;
-import com.dragonconsole.util.*;
-import com.dragonconsole.file.*;
+import java.util.*;
+import com.eleet.dragonconsole.util.*;
+import com.eleet.dragonconsole.file.*;
 import java.awt.datatransfer.DataFlavor;;
 
 /**
@@ -64,6 +64,15 @@ import java.awt.datatransfer.DataFlavor;;
  * Orange       o
  * Dark Orange  O
  * </pre><br />
+ * There are two unique characters that cannot be used as Color codes since they
+ * are used for style control. That is "0" which is used in "&00" which is the
+ * equivalent of ANSIStyle "\003[0m". Both reset the style back to it's default. The
+ * second is "-" which can be substituted in place of any color in a color code
+ * to "carry over" that color. For Example, I have the code "&ob" for Orange
+ * foreground and black background and I want to change the foreground without
+ * changing the background I can add "&r-" which changes the foreground to red
+ * and the background stays the same so the current style code is "&rb".
+ * <br /><br />
  * Built in Defaults:<br />
  * - Color Code char: '&'<br />
  * - Default Fore/Background color: 'xb'<br />
@@ -103,6 +112,8 @@ public class DragonConsole extends JPanel implements KeyListener,
     private JTextArea inputArea;
     private StyledDocument consoleStyledDocument;
     private JScrollPane consoleScrollPane;
+    private int cWidth = DEFAULT_WIDTH;
+    private int cHeight = DEFAULT_HEIGHT;
 
     // Console
     private CommandProcessor commandProcessor = null;
@@ -125,10 +136,9 @@ public class DragonConsole extends JPanel implements KeyListener,
     private boolean ignoreInput = false; // Allows the Programmer to Disble input
     private boolean inputCarryOver = true; // If output is sent while input is being receivied, saves input for next input area
     // Tells the console to keep the ScrollBar maxed when new content is added, or to ignore ScrollBar changes the user has adjusted it away from max.
-    private boolean alwaysScrollMax = false;
-    private boolean scrollBarMax = true; // Tells the setConsoleCaretPosition() to max out the ScrollBar as well or not
+    private boolean alwaysKeepScrollBarMaxed = false;
+    private boolean isScrollBarAtMax = true; // Tells the setConsoleCaretPosition() to max out the ScrollBar as well or not
     private boolean ignoreAdjustment = false; // Tells the Adjustment Listener to ignore any Adjustments to the Scrollbar
-    private int adjustmentCount = 0; // The JScrollBar is adjusted twice in a row, this will count up to ignore both, hopefully
 
     // Default text variables
     private String defaultColor = "xb";
@@ -145,11 +155,18 @@ public class DragonConsole extends JPanel implements KeyListener,
     private Color defaultMacForeground = Color.BLACK;
     private Color defaultMacCaret = Color.BLACK;
 
+    // ANSIStyle Support
+    private boolean useANSIColorCodes = false;
+
+    // Style Variables
+    private SimpleAttributeSet ANSIStyle = null; // Null unless ANSIStyle is turned on.
+    private String currentStyle = defaultColor; // Used for the DragonConsole styles so they work like ANSIStyle
+
     /** Default Constructor uses all the default values.
      */
     public DragonConsole() {
         super();
-        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = true;
         this.printDefaultMessage = true;
 
@@ -161,7 +178,7 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public DragonConsole(boolean useInlineInput) {
         super();
-        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = true;
 
@@ -176,7 +193,7 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public DragonConsole(boolean useInlineInput, boolean printDefaultMessage) {
         super();
-        this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //this.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = printDefaultMessage;
 
@@ -191,7 +208,9 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public DragonConsole(int width, int height) {
         super();
-        this.setSize(width, height);
+        this.cWidth = width;
+        this.cHeight = height;
+        //this.setSize(width, height);
         this.useInlineInput = true;
         this.printDefaultMessage = true;
 
@@ -207,7 +226,9 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public DragonConsole(int width, int height, boolean useInlineInput) {
         super();
-        this.setSize(width, height);
+        //this.setSize(width, height);
+        this.cWidth = width;
+        this.cHeight = height;
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = true;
 
@@ -224,7 +245,9 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public DragonConsole(int width, int height, boolean useInlineInput, boolean printDefaultMessage) {
         super();
-        this.setSize(width, height);
+        //this.setSize(width, height);
+        this.cHeight = height;
+        this.cWidth = width;
         this.useInlineInput = useInlineInput;
         this.printDefaultMessage = printDefaultMessage;
 
@@ -324,10 +347,10 @@ public class DragonConsole extends JPanel implements KeyListener,
      * automatically update to the new max value after the text has been added.
      * If it's moved from the max value by the user then it will stay at
      * whatever value it was placed at by the user.
-     * @param alwaysScrollMax The boolean value determining the method on how to control the Vertical JScrollBar.
+     * @param alwaysKeepScrollBarMaxed The boolean value determining the method on how to control the Vertical JScrollBar.
      */
     public void setKeepScrollBarMax(boolean alwaysScrollMax) {
-        this.alwaysScrollMax = alwaysScrollMax;
+        this.alwaysKeepScrollBarMaxed = alwaysScrollMax;
     }
 
     /** Sets the size of this JPanel.
@@ -336,10 +359,9 @@ public class DragonConsole extends JPanel implements KeyListener,
      * @param width The width of this object
      * @param height The height of this object.
      */
-    @Override
-    public void setSize(int width, int height) {
+    public void setConsoleSize(int width, int height) {
         Dimension dim = new Dimension(width, height);
-        this.setSize(dim);
+        this.setConsoleSize(dim);
     }
 
     /** Sets the size of this JPanel.
@@ -347,8 +369,7 @@ public class DragonConsole extends JPanel implements KeyListener,
      * and Preferred Size, as well as call the super.setSize(dim) method.
      * @param dim The new size of this object.
      */
-    @Override
-    public void setSize(Dimension dim) {
+    public void setConsoleSize(Dimension dim) {
         super.setMaximumSize(dim);
         super.setMinimumSize(dim);
         super.setPreferredSize(dim);
@@ -378,6 +399,8 @@ public class DragonConsole extends JPanel implements KeyListener,
      * or changed.
      */
     protected void initializeConsole() {
+        setConsoleSize(cWidth, cHeight);
+
         // Navigating Previous Entries default behaviour
         //  Default holds 10 values, most recent entry at index 0, and oldest at
         //  the end.
@@ -414,7 +437,7 @@ public class DragonConsole extends JPanel implements KeyListener,
 
         } else {
             consolePane = new JTextPane();
-            consolePane.setFocusable(false);
+            //consolePane.setFocusable(false);
             consolePane.setEditable(false);
         }
 
@@ -458,6 +481,8 @@ public class DragonConsole extends JPanel implements KeyListener,
         inputArea.setFont(consoleFont);
         inputArea.setBorder(null);
         inputArea.addKeyListener(this);
+        if (!useInlineInput)
+            inputArea.requestFocusInWindow();
 
         consoleScrollPane = new JScrollPane(consolePane);
         consoleScrollPane.setBorder(null);
@@ -481,6 +506,29 @@ public class DragonConsole extends JPanel implements KeyListener,
         setDefaultStyle();
     }
 
+    /** Tell the DragonConsole whether to allow (and display) ANSIStyle Color Codes.
+     * Allows the programmer to specify whether to allow ANSIStyle Color Codes or
+     * not. If ANSIStyle Color Codes are allowed then you will be unable to use the
+     * default DragonConsole Color Codes (although they will still be
+     * processed out of any String passed through append().
+     * @param useANSIColorCodes <code>true</code> to use ANSIStyle Color Codes, or <code>false</code> to use DragonConsole Color Codes.
+     */
+    public void setUseANSIColorCodes(boolean useANSIColorCodes) {
+        this.useANSIColorCodes = useANSIColorCodes;
+    }
+
+    /** Sets the Prompt for the Input Area (when not using Inline Input) to the specified String.
+     * Sets the prompt for the Input Area to the specified prompt String passed.
+     * This method does nothing when using Inline Input since no Input Area is
+     * displayed.<br /><br />
+     * ** NOTE: Only DragonConsole color codes can be used to style the Prompt
+     * **
+     * @param newPrompt The new prompt for the input area.
+     */
+    public void setPrompt(String newPrompt) {
+        consolePrompt.setPrompt(newPrompt);
+    }
+
     /** Prints the logo for DragonConsole if <code>printDefaultMessage</code> is <code>true</code>
      * Prints the DragonConsole logo that is saved in logo_b or lobo_w in the
      * .jar depending on if the background color is White or not White.
@@ -495,6 +543,7 @@ public class DragonConsole extends JPanel implements KeyListener,
                     color = "w";
 
                 append(FileProcessor.readDCResource("logo_" + color));
+                
             } catch(Exception exc) { }
         }
     }
@@ -597,6 +646,8 @@ public class DragonConsole extends JPanel implements KeyListener,
         addTextColor('P', new Color(128, 0, 255).darker()); // Dark Purple
         addTextColor('d', new Color(241, 234, 139)); // Gold
         addTextColor('D', new Color(241, 234, 139).darker()); // Dark Gold
+        addTextColor('m', Color.MAGENTA); // Magenta
+        addTextColor('M', Color.MAGENTA.darker()); // Dark Magenta
 
         // Black and White -- Single colors (no dark version)
         addTextColor('b', Color.BLACK); // Black
@@ -687,6 +738,28 @@ public class DragonConsole extends JPanel implements KeyListener,
         print(temp + "\n", style);
     }
 
+    /** This method should be used to interface with the ANSI class for converting colors.
+     * This method will convert the DragonConsole Color Codes in the passed
+     * String into their ANSI equivalent. This method should be used in place of
+     * calling the ANSI class directly.
+     * @param toConvert The String that needs to be converted.
+     * @return The String after the DragonConsole Codes have been converted to ANSI Codes.
+     */
+    public String convertToANSIColors(String toConvert) {
+        return ANSI.convertDCtoANSIColors(toConvert, textColors, colorCodeChar);
+    }
+
+    /** This method should be used to interface with the ANSI class for converting colors.
+     * This method will convert ANSI Color Codes into their DragonConsole Color
+     * Code equivalent. This method should be used in place of calling the ANSI
+     * class directly.
+     * @param toConvert The String that needs to be converted.
+     * @return The String after the ANSI Codes have been converted to DragonConsole Codes.
+     */
+    public String convertToDCColors(String toConvert) {
+        return ANSI.convertANSIToDCColors(toConvert, textColors, colorCodeChar, defaultColor);
+    }
+
     /** Prints the given output without processing.
      * This method prints the passed output String to the console without
      * processing it for scripts or color codes. This would be used if you
@@ -712,10 +785,7 @@ public class DragonConsole extends JPanel implements KeyListener,
         }
 
         boolean hasInput = false;
-        boolean ANSIStyle = false;
         String processed = "";
-        String style = defaultColor;
-        String ANSIAttribute = "";
 
         for (int i = 0; i < outputToProcess.length(); i++) {
             if (outputToProcess.charAt(i) == colorCodeChar) {
@@ -725,9 +795,11 @@ public class DragonConsole extends JPanel implements KeyListener,
                     i += 1; // Jump past the - (&&)
 
                 } else if ((i + 2) < outputToProcess.length()) {
-                    print(processed, style);
-                    style = outputToProcess.substring(i + 1, i + 3);
-                    processed = ""; // Clear processed for the next series of colored text
+                    print(processed);
+                    processed = "";
+
+                    setCurrentStyle(outputToProcess.substring(i + 1, i + 3));
+
                     i += 2; // Jump past the two character color code
 
                 } else
@@ -735,9 +807,15 @@ public class DragonConsole extends JPanel implements KeyListener,
 
             } else if (outputToProcess.charAt(i) == '\033') {
                 if (outputToProcess.indexOf('m', i) < outputToProcess.length()) {
-                    print(processed, style);
+                    print(processed);
                     processed = "";
-                    style = defaultColor;
+
+                    ANSIStyle = ANSI.getANSIAttribute(ANSIStyle,
+                            outputToProcess.substring(i,
+                                outputToProcess.indexOf('m', i) + 1),
+                            consoleStyledDocument.getStyle(defaultColor));
+
+                    i = outputToProcess.indexOf('m', i);
                 }
             } else if (outputToProcess.charAt(i) == '%' && !ignoreInput) {
 
@@ -752,16 +830,18 @@ public class DragonConsole extends JPanel implements KeyListener,
                         String inputCommand = outputToProcess.substring(i, outputToProcess.indexOf(';', i) + 1);
 
                         if (inputControl.setInputStyle(inputCommand)) {
-                            print(processed, style); // Print what's been processed in it's color
+                            print(processed);
+                            processed = "";
+
                             inputControl.setRangeStart(consoleStyledDocument.getLength());
                             print(inputControl.getInputRangeString(), defaultColor); // Print the blank space if the input is not infinite
 
-                            processed = ""; // Clear processed for the next series of colored text
-
                         } else {
                             outputToProcess = ""; // Clear out the output to process if input is infinite, which means anything after the input string is ignored.
-                            print(processed, style);
+                            
+                            print(processed);
                             processed = "";
+
                             inputControl.setRangeStart(consoleStyledDocument.getLength());
                         }
 
@@ -772,12 +852,50 @@ public class DragonConsole extends JPanel implements KeyListener,
             } else
                 processed += outputToProcess.charAt(i);
         }
-        print(processed, style);
+
+        print(processed);
 
         if (!(hasInput))
             inputControl.setBasicInput(consoleStyledDocument.getLength());
 
         setConsoleCaretPosition();
+    }
+
+    /** Helper method for append that sets the current style variable based on the code passed.
+     * This method processes a color code passed from append and sets the
+     * <code>currentStyle</code> variable accordingly.
+     * @param code The new color code by which to set <code>currentStyle</code>.
+     */
+    private void setCurrentStyle(String code) {
+        String newStyle = "";
+        if (code.length() == 2) {
+            if (code.contains("0")) {
+                currentStyle = defaultColor;
+            } else if (code.contains("-")) {
+                if (!(code.equals("--"))) {
+                    if (code.charAt(0) == '-')
+                        currentStyle = "" + currentStyle.charAt(0) + code.charAt(1);
+                    else
+                        currentStyle = "" + code.charAt(0) + currentStyle.charAt(1);
+                }
+            } else
+                currentStyle = code;
+        }
+    }
+
+    /** Helper method for append() which prints the text with the style depending on if ANSIStyle is on or not.
+     * This is a helper method for append() which prints the current text out
+     * depending on which color code method is set (ANSIStyle or DCCodes). This
+     * method was added to cut back on code.
+     * @param processed The current String of processed text in append().
+     */
+    private void print(String processed) {
+        if (processed.length() > 0) {
+            if (useANSIColorCodes && ANSIStyle != null)
+                print(processed, ANSIStyle);
+            else
+                print(processed, currentStyle);
+        }
     }
 
     /** Processes the String for DCScript if a DCScript Character is found in append()
@@ -811,7 +929,7 @@ public class DragonConsole extends JPanel implements KeyListener,
             if (inputCarryOver && inputControl.hasStoredInput())
                 inputControl.restoreInput();
 
-            if (alwaysScrollMax || !alwaysScrollMax && scrollBarMax)
+            if (alwaysKeepScrollBarMaxed || !alwaysKeepScrollBarMaxed && isScrollBarAtMax)
                 setScrollBarMax();
         }
         else {
@@ -822,7 +940,7 @@ public class DragonConsole extends JPanel implements KeyListener,
 
     private void setScrollBarMax() {
         final JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
-        if (scrollBarMax) {
+        if (isScrollBarAtMax) {
             new Thread() {
                 public void run() {
                     try {
@@ -890,13 +1008,26 @@ public class DragonConsole extends JPanel implements KeyListener,
                     consoleStyledDocument.getLength(), output,
                     consoleStyledDocument.getStyle(style));
         }
-        catch (BadLocationException e) {
-            JOptionPane.showMessageDialog(this,
-                    "An error ocurred adding the input to the console. \n"
-                    + "The program must exit.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            System.exit(0);
+        catch (BadLocationException e) { }
+    }
+
+    /** Prints a String in the Document with the given AttributeSet.
+     * This method adds a string to consolePane's StyledDocument allowing the
+     * text to be styled by the predefined color styles.
+     * @param output The text string to add to the Console.
+     * @param style The color code for this text String.
+     */
+    protected void print(String output, SimpleAttributeSet style) {
+        try { // Try to add the colored string to the output area document
+            ignoreAdjustment = true;
+
+            if (useInlineInput)
+                output = inputControl.getBypassPrefix() + output;
+
+            consoleStyledDocument.insertString(
+                    consoleStyledDocument.getLength(), output, style);
         }
+        catch (BadLocationException e) { }
     }
 
     private void addPreviousEntry(String entry) {
@@ -925,8 +1056,7 @@ public class DragonConsole extends JPanel implements KeyListener,
 
     public void keyPressed(KeyEvent e) {
         if (!useInlineInput) {
-            if (alwaysScrollMax || (!alwaysScrollMax && scrollBarMax)) {
-                System.out.println("Here to adjust");
+            if (alwaysKeepScrollBarMaxed || (!alwaysKeepScrollBarMaxed && isScrollBarAtMax)) {
                 JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
                 ignoreAdjustment = true;
                 if (vBar.isVisible())
@@ -1027,16 +1157,10 @@ public class DragonConsole extends JPanel implements KeyListener,
             int maxValue = sBar.getMaximum() - sBar.getModel().getExtent();
 
             if (value == maxValue)
-                scrollBarMax = true;
+                isScrollBarAtMax = true;
             else if (value < maxValue)
-                scrollBarMax = false;
-        } else {
-            //if (adjustmentCount == 1) {
-                ignoreAdjustment = false;
-            //    adjustmentCount = 0;
-            //}
-            //else
-            //    adjustmentCount++;
-        }
+                isScrollBarAtMax = false;
+        } else
+            ignoreAdjustment = false;
     }
 }

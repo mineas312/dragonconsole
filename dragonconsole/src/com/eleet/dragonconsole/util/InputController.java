@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Brandon E Buck
+ * Copyright (c) 2010 3l33t Software Developers, L.L.C.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package com.dragonconsole.util;
+package com.eleet.dragonconsole.util;
 
 import javax.swing.JTextPane;
 import javax.swing.text.*;

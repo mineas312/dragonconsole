@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Brandon E Buck
+ * Copyright (c) 2010 3l33t Software Developers, L.L.C.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package com.dragonconsole.util;
+package com.eleet.dragonconsole.util;
 
 import java.awt.Color;
 
@@ -28,13 +28,31 @@ import java.awt.Color;
  *
  * @author Brandon E Buck
  */
-public class TextColor {
+public class TextColor implements Comparable {
     private char charCode;
     private Color color;
 
     public TextColor(char charCode, Color color) {
         this.charCode = charCode;
         this.color = color;
+    }
+
+    private TextColor(char charCode) {
+        this.charCode = charCode;
+        this.color = null;
+    }
+
+    private TextColor(Color color) {
+        this.charCode = '-';
+        this.color = color;
+    }
+
+    public static TextColor getTestTextColor(char charCode) {
+        return new TextColor(charCode);
+    }
+
+    public static TextColor getTestTextColor(Color color) {
+        return new TextColor(color);
     }
 
     public TextColor(String charCode, Color color) {
@@ -49,13 +67,14 @@ public class TextColor {
         return color;
     }
 
+    @Override
     public int compareTo(Object o) {
         String cName = o.getClass().getName();
 
         if (cName.equals("java.lang.Character")) {
             Character c = new Character(charCode);
             return c.compareTo((Character)o);
-        } else if (cName.equals("dragonconsole.util.TextColor")) {
+        } else if (cName.equals("com.eleet.dragonconsole.util.TextColor")) {
             Character c = new Character(charCode);
             Character otherC = new Character(((TextColor)o).getCharCode());
             return c.compareTo(otherC);
@@ -64,18 +83,29 @@ public class TextColor {
         return 0;
     }
 
+    @Override
     public boolean equals(Object o) {
         String cName = o.getClass().getName();
 
-        if (cName.equals("dragonconsole.util.TextColor")) {
+        if (cName.equals("com.eleet.dragonconsole.util.TextColor")) {
             TextColor otc = (TextColor)o;
 
-            return ((charCode == otc.getCharCode()));
+            if (otc.getColor() == null || color == null)
+                return ((charCode == otc.getCharCode()));
+            else
+                return ((color.equals(otc.getColor())));
+
         } else if (cName.equals("java.lang.Character")) {
             Character oc = (Character)o;
 
             return ((charCode == oc.toString().charAt(0)));
         } else
             return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Code: " + ((charCode == '-') ? "TEST_TextColor" : charCode)
+             + " = " + ((color == null) ? "TEST_TextColor" : color.toString());
     }
 }
