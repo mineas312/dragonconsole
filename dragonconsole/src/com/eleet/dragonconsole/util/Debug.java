@@ -23,20 +23,35 @@
 package com.eleet.dragonconsole.util;
 
 /**
- *
+ * Debug is a small static class designed for adding Debug statements into
+ * your program. The idea is that any data that you may want to see actively
+ * displayed (i.e. to System.out) when debugging will be printed as long as
+ * Debug.turnOn() has been called prior to your Debug.print() statements. This
+ * allows the programmer to add in numerous debugging Print statements and
+ * control whether they display by changing one line of code.
  * @author Brandon E Buck
  */
 public class Debug {
     private static boolean on = false;
 
+    /** Turns Debug Printing on.
+     * Turns Debug Printing on.
+     */
     public static void turnOn() {
         on = true;
     }
 
+    /** Turns Debug Printing off.
+     * Turns Debug Printing off.
+     */
     public static void turnOff() {
         on = false;
     }
 
+    /** Prints the String to System.out.println() if Debug printing is turned on.
+     * Prints the String to System.out.println() if Debug printing is turned on.
+     * @param output The String to print out if Debug printing is turned on.
+     */
     public static void print(String output) {
         if (on)
             System.out.println(output);
