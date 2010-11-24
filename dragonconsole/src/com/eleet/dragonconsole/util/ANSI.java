@@ -42,26 +42,29 @@ import javax.swing.text.StyleConstants;
 public class ANSI {
     public static final String ESCAPE = "\033"; // ANSI Escape Character that starts commands
 
-    private static final Color N_0 = Color.BLACK;           // Normal Black
-    private static final Color N_1 = Color.RED.darker();    // Normal Red
-    private static final Color N_2 = Color.GREEN.darker();  // Normal Green
-    private static final Color N_3 = Color.YELLOW.darker(); // Normal Yellow
-    private static final Color N_4 = new Color(0, 0, 174);  // Normal Blue
-    private static final Color N_5 = Color.MAGENTA.darker();// Normal Magenta
-    private static final Color N_6 = Color.CYAN.darker();   // Normal Cyan
-    private static final Color N_7 = Color.GRAY.brighter(); // Normal Gray
+    public static final Color BLACK = Color.BLACK;           
+    public static final Color RED = Color.RED.darker();    
+    public static final Color GREEN = Color.GREEN.darker();  
+    public static final Color YELLOW = Color.YELLOW.darker(); 
+    public static final Color BLUE = new Color(66, 66, 255).darker();  
+    public static final Color MAGENTA = Color.MAGENTA.darker();
+    public static final Color CYAN = Color.CYAN.darker();   
+    public static final Color WHITE = Color.GRAY.brighter(); 
 
-    private static final Color B_0 = Color.GRAY;            // Bright Black
-    private static final Color B_1 = Color.RED;             // Bright Red
-    private static final Color B_2 = Color.GREEN;           // Bright Green
-    private static final Color B_3 = Color.YELLOW;          // Bright Yellow
-    private static final Color B_4 = new Color(66, 66, 255);// Bright Blue
-    private static final Color B_5 = Color.MAGENTA;         // Bright Magenta
-    private static final Color B_6 = Color.CYAN;            // Bright Cyan
-    private static final Color B_7 = Color.WHITE;           // Bright Gray
+    public static final Color INTENSE_BLACK = Color.GRAY.darker(); 
+    public static final Color INTENSE_RED = Color.RED;             
+    public static final Color INTENSE_GREEN = Color.GREEN;           
+    public static final Color INTENSE_YELLOW = Color.YELLOW;          
+    public static final Color INTENSE_BLUE = new Color(66, 66, 255);
+    public static final Color INTENSE_MAGENTA = Color.MAGENTA;         
+    public static final Color INTENSE_CYAN = Color.CYAN;            
+    public static final Color INTENSE_WHITE = Color.WHITE;           
 
-    private static final Color normal[] = {N_0, N_1, N_2, N_3, N_4, N_5, N_6, N_7};
-    private static final Color bright[] = {B_0, B_1, B_2, B_3, B_4, B_5, B_6, B_7};
+    private static final Color normal[] = {BLACK, RED, GREEN, YELLOW, BLUE,
+            MAGENTA, CYAN, WHITE};
+    private static final Color bright[] = {INTENSE_BLACK, INTENSE_RED, 
+            INTENSE_GREEN, INTENSE_YELLOW, INTENSE_BLUE, INTENSE_MAGENTA,
+            INTENSE_CYAN, INTENSE_WHITE};
 
     /** This method takes a ANSI code in string format and creates a SimpleAttributeSet with the style specifics.
      * Takes an ANSI Code as a String and breaks it apart and then creates a
@@ -362,51 +365,51 @@ public class ANSI {
             case 30:
             case 40:
                 if (brighter)
-                    return B_0;
+                    return INTENSE_BLACK;
                 else
-                    return N_0;
+                    return BLACK;
             case 31:
             case 41:
                 if (brighter)
-                    return B_1;
+                    return INTENSE_RED;
                 else
-                    return N_1;
+                    return RED;
             case 32:
             case 42:
                 if (brighter)
-                    return B_2;
+                    return INTENSE_GREEN;
                 else
-                    return N_2;
+                    return GREEN;
             case 33:
             case 43:
                 if (brighter)
-                    return B_3;
+                    return INTENSE_YELLOW;
                 else
-                    return N_3;
+                    return YELLOW;
             case 34:
             case 44:
                 if (brighter)
-                    return B_4;
+                    return INTENSE_BLUE;
                 else
-                    return N_4;
+                    return BLUE;
             case 35:
             case 45:
                 if (brighter)
-                    return B_5;
+                    return INTENSE_MAGENTA;
                 else
-                    return N_5;
+                    return MAGENTA;
             case 36:
             case 46:
                 if (brighter)
-                    return B_6;
+                    return INTENSE_CYAN;
                 else
-                    return N_6;
+                    return CYAN;
             case 37:
-            case 38:
+            case 47:
                 if (brighter)
-                    return B_7;
+                    return INTENSE_WHITE;
                 else
-                    return N_7;
+                    return WHITE;
             default:
                 return null;
         }

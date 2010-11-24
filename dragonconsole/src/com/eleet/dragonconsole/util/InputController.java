@@ -122,7 +122,13 @@ public class InputController extends DocumentFilter {
 
                 input = new InputString("");
                 input.append(newInput);
-            } catch (Exception exc) { }
+            } catch (Exception exc) {
+                javax.swing.JOptionPane.showMessageDialog(null,
+                        "Error #0011\n"
+                      + "Failed to set the input in the Document!\n"
+                      + exc.getMessage(),
+                      "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -220,7 +226,13 @@ public class InputController extends DocumentFilter {
         StyledDocument doc = console.getStyledDocument();
         try {
             doc.remove(0, doc.getLength());
-        } catch(Exception exc) { }
+        } catch(Exception exc) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error #0012\n"
+                  + "Failed to clear the text in Document!\n"
+                  + exc.getMessage(),
+                  "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public int getInputRangeEnd() {
@@ -430,7 +442,13 @@ public class InputController extends DocumentFilter {
                     else
                         ((AbstractDocument)console.getStyledDocument()).replace(rangeStart, end, input.get(), inputAttr);
                 
-                } catch (Exception exc) { }
+                } catch (Exception exc) {
+                    javax.swing.JOptionPane.showMessageDialog(null,
+                            "Error #0013\n"
+                          + "Failed to restore the Input!\n"
+                          + exc.getMessage(),
+                          "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
 
                 stored = null;
 

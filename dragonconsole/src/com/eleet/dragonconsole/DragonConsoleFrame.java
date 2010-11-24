@@ -52,6 +52,7 @@ public class DragonConsoleFrame extends JFrame {
         
         this.add(console);
         this.pack();
+        console.setInputFocus();
 
         this.centerWindow();
     }
@@ -69,6 +70,7 @@ public class DragonConsoleFrame extends JFrame {
 
         this.add(console);
         this.pack();
+        console.setInputFocus();
 
         this.centerWindow();
     }
@@ -87,6 +89,7 @@ public class DragonConsoleFrame extends JFrame {
         
         this.add(console);
         this.pack();
+        console.setInputFocus();
 
         this.centerWindow();
     }
@@ -104,6 +107,7 @@ public class DragonConsoleFrame extends JFrame {
 
         this.add(console);
         this.pack();
+        console.setInputFocus();
 
         this.centerWindow();
     }

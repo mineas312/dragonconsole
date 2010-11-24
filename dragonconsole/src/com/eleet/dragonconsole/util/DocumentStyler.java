@@ -38,58 +38,6 @@ import java.util.ArrayList;
  * @version 1.3
  */
 public class DocumentStyler {
-     /** Used at Runtime to add a new style to the StyledDocument for use.
-     * This method is used by styleDocument() and by at runtime to add styles
-     * to the StyledDocument. <strong>Be warned that any styles added at
-     * runtime (i.e. those that are not built in to this class) MUST be updated
-     * manually if any changes occur to font/background color on the Console.
-     * </strong>
-     * @param documentToUpdate The StyledDocument the new Style will be added to.
-     * @param styleName The name you want to give the style, used to access it for updating or printing.
-     * @param styleFont The Font you want to set for this style, to go with default pass the getFont() from the console.
-     * @param styleBackground This can be set to the default background color (getBackground()) or you can change it to highlight the text.
-     * @return The StyledDocument after the changes have been made to it.
-     */
-    public static StyledDocument addNewStyle(StyledDocument documentToUpdate,
-            String styleName, Font styleFont, Color styleForeground) {
-        Style parentStyle = StyleContext.getDefaultStyleContext()
-                .getStyle(StyleContext.DEFAULT_STYLE);
-
-        Style temp = documentToUpdate.addStyle(styleName, parentStyle);
-        //setStyleFont(temp, styleFont);
-        StyleConstants.setForeground(temp, styleForeground);
-    
-        return documentToUpdate;
-    }
-
-    /** Used at Runtime to add a new style to the StyledDocument for use.
-     * This method is used by styleDocument() and by at runtime to add styles
-     * to the StyledDocument. Unlike other styles, this style is added with a
-     * background color which will "highlight" the text. <strong>Be warned that
-     * any styles added at runtime (i.e. those that are not built in to this
-     * class) MUST be updated manually if any changes occur to font/background
-     * color on the Console.</strong>
-     * @param documentToUpdate The StyledDocument the new Style will be added to.
-     * @param styleName The name you want to give the style, used to access it for updating or printing.
-     * @param styleFont The Font you want to set for this style, to go with default pass the getFont() from the console.
-     * @param styleForeground The text color for the style.
-     * @param styleBackground This can be set to the default background color (getBackground()) or you can change it to highlight the text.
-     * @return The StyledDocument after the changes have been made to it.
-     */
-    public static StyledDocument addNewStyle(StyledDocument documentToUpdate,
-            String styleName, Font styleFont, Color styleForeground,
-            Color styleBackground) {
-        Style parentStyle = StyleContext.getDefaultStyleContext()
-                .getStyle(StyleContext.DEFAULT_STYLE);
-
-        Style temp = documentToUpdate.addStyle(styleName, parentStyle);
-        //setStyleFont(temp, styleFont);
-        StyleConstants.setForeground(temp, styleForeground);
-        StyleConstants.setBackground(temp, styleBackground);
-
-        return documentToUpdate;
-    }
-
     /** Adds a new Style to the StyledDocument based on the two TextColor objects passed.
      * Uses the char codes from each TextColor object passed to create a Style
      * name and then adds the Style to the StyledDocument with the appropriate
@@ -113,19 +61,6 @@ public class DocumentStyler {
         StyleConstants.setBackground(temp, background.getColor());
 
         return documentToUpdate;
-    }
-
-    /** Sets the Font options for a style so that it prints in newFont
-     * This method is a helper, it sets the styles Font Family, Font Size, and
-     * whether or not the Font is Bold and/or Italic.
-     * @param style The Style object in which the Font information will be stored.
-     * @param newFont The newFont that needs to be set to the Style object.
-     */
-    private static void setStyleFont(Style style, Font newFont) {
-        StyleConstants.setFontFamily(style, newFont.getFamily());
-        StyleConstants.setFontSize(style, newFont.getSize());
-        StyleConstants.setBold(style, newFont.isBold());
-        StyleConstants.setItalic(style, newFont.isItalic());
     }
     
     /** Sets the Font options for a SimpleAttributeSet so that it contains the 
@@ -178,6 +113,32 @@ public class DocumentStyler {
             TextColor tc = textColors.get(i);
             documentToUpdate = addNewStyle(documentToUpdate, consoleFont, newColor, tc); // Give the New Color every background
             documentToUpdate = addNewStyle(documentToUpdate, consoleFont, tc, newColor); // Give Every Color the new background
+        }
+
+        return documentToUpdate;
+    }
+
+    /** Removes all Styles that include the Color given from the StyledDocument.
+     * This method will remove any and all Styles in the StyledDocument that
+     * contain it as a foreground or background.
+     * @param documentToUpdate The document the color should be removed from.
+     * @param remove The Color that need to be removed.
+     * @param colors The list of Colors that have been added to the StyledDocument.
+     * @return The StyledDocument after the colors have been removed.
+     */
+    public static StyledDocument removeColor(StyledDocument documentToUpdate,
+            TextColor remove, ArrayList<TextColor> colors) {
+        // Remove this here since this will be called after it's been removed from the list
+        documentToUpdate.removeStyle("" + remove.getCharCode() + remove.getCharCode());
+
+        for (int i = 0; i < colors.size(); i++) {
+            TextColor temp = colors.get(i);
+
+            String s1 = "" + temp.getCharCode() + remove.getCharCode();
+            String s2 = "" + remove.getCharCode() + temp.getCharCode();
+
+            documentToUpdate.removeStyle(s1);
+            documentToUpdate.removeStyle(s2);
         }
 
         return documentToUpdate;

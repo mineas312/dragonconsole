@@ -56,7 +56,13 @@ public class FileProcessor {
                 in.close();
                 fread.close();
 
-            } catch(Exception exc) { }
+            } catch(Exception exc) {
+                javax.swing.JOptionPane.showMessageDialog(null,
+                        "Error #0008\n"
+                      + "Failed to read the given File.\n"
+                      + exc.getMessage(),
+                      "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
 
         } else
             throw new FileNotFoundException("Invalid File Path provided (" + file.getName() + ").");
@@ -82,7 +88,13 @@ public class FileProcessor {
             isr.close();
             is.close();
 
-        } catch(Exception exc) { }
+        } catch(Exception exc) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error #0009\n"
+                  + "Failed to read the file from the jar!\n"
+                  + exc.getMessage(),
+                  "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
 
         return contents;
     }
@@ -97,7 +109,13 @@ public class FileProcessor {
 
             is.close();
 
-        } catch(Exception exc) { }
+        } catch(Exception exc) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error #0010\n"
+                  + "Failed to load the font file from the jar!\n"
+                  + exc.getMessage(),
+                  "Error Caught", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
 
         return consoleFont;
     }

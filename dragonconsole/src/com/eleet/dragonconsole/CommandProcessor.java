@@ -136,4 +136,24 @@ public class CommandProcessor {
     public String readText(String filePath) throws Exception {
         return com.eleet.dragonconsole.file.FileProcessor.readText(filePath);
     }
+
+    /** Converts all DCCCs in the given String to their ANSI equivalent.
+     * Passes the given String to the console to convert all the DCCCs in the
+     * String to their ANSI equivalent.
+     * @param string The String to convert.
+     * @return Returns the String after all DCCCs have been converted into ANSI codes.
+     */
+    public String convertToANSIColors(String string) {
+        return console.convertToANSIColors(string);
+    }
+
+    /** Converts all ANSI Codes in the given String to their DCCC equivalent.
+     * Passes the given String to the console to convert all the ANSI Codes in
+     * the String to their DCCC equivalent.
+     * @param string The String to convert.
+     * @return Returns the String after all ANSI Codes have been converted into DCCCs.
+     */
+    public String convertToDCColors(String string) {
+        return console.convertToDCColors(string);
+    }
 }
