@@ -103,7 +103,7 @@ public class FileProcessor {
 
             String line = in.readLine();
             while (line != null) {
-                contents += line + "\n\r";
+                contents += line + "\n";
                 line = in.readLine();
             }
 

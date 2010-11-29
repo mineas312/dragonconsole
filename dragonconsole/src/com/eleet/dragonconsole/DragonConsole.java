@@ -111,7 +111,7 @@ public class DragonConsole extends JPanel implements KeyListener,
     /** 
      * Minor Change/Bug Fix number, does not include additional features.
      */
-    private static final String BUG_FIX = "0";
+    private static final String BUG_FIX = "1";
 
     /**
      * The Version Tag is "b" for Beta or "a" for Alpha, if it's a full release
@@ -1542,14 +1542,16 @@ public class DragonConsole extends JPanel implements KeyListener,
             if (!ignoreInput) {
                 if (useInlineInput) {
                     e.consume();
+                    boolean isProtected = inputControl.isProtected();
                     String input = inputControl.getInput();
                     
                     if (commandProcessor != null)
                         commandProcessor.processCommand(input);
                     else
                         appendWithoutProcessing(input);
-                    
-                    addPreviousEntry(input);
+
+                    if (!(isProtected))
+                        addPreviousEntry(input);
                     
                 } else {
                     if ((!inputFieldNewLine) || !(e.isShiftDown())) {

@@ -197,7 +197,7 @@ public class InputController extends DocumentFilter {
      * <code>isReceivingInput</code>.
      */
     public void reset() {
-        rangeStart = 0;
+        rangeStart = -1;
         rangeEnd = 0;
         protect = false;
         input = new InputString("");
