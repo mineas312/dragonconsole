@@ -55,7 +55,7 @@ public class DemoProcessor extends CommandProcessor {
             String cmd[] = input.split(" ");
 
             if (cmd.length == 0)
-                outputSystem("\n\nYou must enter a command! Valdid commands are INFO, LICENSE, and EXIT");
+                outputSystem("\n\nYou must enter a command! Valdid commands are INFO, LICENSE, DEMO, ANSI, and EXIT");
 
             else if (cmd[0].equals("info")) {
                 if (cmd.length > 1) {
@@ -134,7 +134,7 @@ public class DemoProcessor extends CommandProcessor {
             } else if (cmd[0].equals("exit"))
                 System.exit(0);
             else
-                outputSystem("\n\nYou must enter a command! Valid commands are INFO, LICENSE, and EXIT");
+                outputSystem("\n\nYou must enter a command! Valdid commands are INFO, LICENSE, DEMO, ANSI, and EXIT");
         }
 
         if (!inputDemo)
