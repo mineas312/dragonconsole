@@ -26,7 +26,7 @@ import java.awt.*;
 import javax.swing.text.*;
 import java.util.ArrayList;
 
-/** Adds and updates the static styles as well as handling new style creation.
+/** 
  * This class is designed to control and make easier the addition of text
  * styles to the StyledDocument of the Consoles JTextPane component.
  * The DocumentStyler is a static class with numerous helper methods for adding
@@ -38,7 +38,7 @@ import java.util.ArrayList;
  * @version 1.3
  */
 public class DocumentStyler {
-    /** Adds a new Style to the StyledDocument based on the two TextColor objects passed.
+    /** 
      * Uses the char codes from each TextColor object passed to create a Style
      * name and then adds the Style to the StyledDocument with the appropriate
      * foreground and background colors supplied by the TextColor objects.
@@ -63,7 +63,7 @@ public class DocumentStyler {
         return documentToUpdate;
     }
     
-    /** Sets the Font options for a SimpleAttributeSet so that it contains the 
+    /** 
      * same Font style as newFont. This method is a helper, it sets the 
      * SimpleAttributeSets Font Family, Font Size, and whether or not the Font 
      * is Bold and/or Italic.
@@ -80,10 +80,11 @@ public class DocumentStyler {
         return sas;
     }
 
-    /** Changes the font for all text in already in a Document.
+    /** 
      * Changes the Font attribute of all styles currently in a Document to a
      * new Font, this method is called when the consoleFont is changed.
-     * @param documentToUpdate The StyledDocument containing the text to be changed.
+     * @param documentToUpdate The StyledDocument containing the text to be
+     *  changed.
      * @param newFont The new Font to show in the StyledDocument.
      */
     public static StyledDocument changeFont(StyledDocument documentToUpdate, Font newFont) {
@@ -94,7 +95,7 @@ public class DocumentStyler {
         return documentToUpdate;
     }
 
-    /**  Adds a new color to the StyledDocuemnt with every available background color.
+    /**  
      * This methods adds the new color as a foreground color for all
      * available background colors as well as a background for all available
      * foreground colors. This method should never be called directly, instead
@@ -102,8 +103,10 @@ public class DocumentStyler {
      * <code>addTextColor(char, Color)</code> method.
      * @param documentToUpdate The StyledDocument the new Color is to be added to.
      * @param consoleFont The Font these styles will use.
-     * @param newColor The TextColor that needs to be added as a foreground and background.
-     * @param textColors The list of colors already in the Console, used so the newColor can have each background and foreground of previously added colors.
+     * @param newColor The TextColor that needs to be added as a foreground and
+     *  background.
+     * @param textColors The list of colors already in the Console, used so the
+     *  newColor can have each background and foreground of previously added colors.
      * @return The modified StyledDocument.
      */
     public static StyledDocument addNewColor(StyledDocument documentToUpdate,
@@ -118,7 +121,7 @@ public class DocumentStyler {
         return documentToUpdate;
     }
 
-    /** Removes all Styles that include the Color given from the StyledDocument.
+    /** 
      * This method will remove any and all Styles in the StyledDocument that
      * contain it as a foreground or background.
      * @param documentToUpdate The document the color should be removed from.

@@ -34,21 +34,21 @@ package com.eleet.dragonconsole.util;
 public class Debug {
     private static boolean on = false;
 
-    /** Turns Debug Printing on.
+    /** 
      * Turns Debug Printing on.
      */
     public static void turnOn() {
         on = true;
     }
 
-    /** Turns Debug Printing off.
+    /** 
      * Turns Debug Printing off.
      */
     public static void turnOff() {
         on = false;
     }
 
-    /** Prints the String to System.out.println() if Debug printing is turned on.
+    /** 
      * Prints the String to System.out.println() if Debug printing is turned on.
      * @param output The String to print out if Debug printing is turned on.
      */

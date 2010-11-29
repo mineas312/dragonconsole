@@ -37,17 +37,19 @@ package com.eleet.dragonconsole;
  * @author Brandon E Buck
  */
 public class CommandProcessor {
-    /** The DragonConsole this Processor is registered to */
+    /** 
+     * The DragonConsole this Processor is registered to
+     */
     private DragonConsole console;
 
-    /** Default Constructor for CommandProcessor, takes no Arguments.
+    /** 
      * The Default Constructor, this method sets the console to null.
      */
     public CommandProcessor() {
         console = null;
     }
 
-    /** Sets the DragonConsole object that output will be sent to.
+    /** 
      * This method is called from the DragonConsoles setCommandProcessor()
      * method and SHOULT NOT be called by the programmer or any other class
      * (excluding possible extensions of DragonConsole).
@@ -57,7 +59,7 @@ public class CommandProcessor {
         this.console = console;
     }
     
-    /** Sets the console object to null. Only called from DragonConsole.
+    /** 
      * Used to remove the ties to the DragonConsole if the CommandProcessor is
      * changed. This method is only called if a new CommandProcessor is added
      * to the DragonConsole this CommandProcessor is registered with. This
@@ -67,7 +69,7 @@ public class CommandProcessor {
         this.console = null;
     }
 
-    /** This method is the prime method to override, it's used to process input.
+    /** 
      * Processes a String entered via a DragonConsole for commands and handles
      * and special cases that need to be taken care of based on the command.
      * This method should just send the string to print if no valid command is
@@ -78,7 +80,7 @@ public class CommandProcessor {
         output(input + "\n");
     }
 
-    /** Outputs the text sent by sending it to the console.
+    /** 
      * ** USE <code>output(String)</code> instead **
      * @param output The String to be sent to the console for output.
      */
@@ -88,7 +90,7 @@ public class CommandProcessor {
             console.append(output);
     }
 
-    /** Sends the text to the Console to be processed by the console.
+    /** 
      * Sends the text to the console for Color Code/Script processing.
      * @param output The text for the console to output.
      */
@@ -97,7 +99,7 @@ public class CommandProcessor {
             console.append(output);
     }
     
-    /** Appends the output to the console as a System message.
+    /** 
      * Appends the output, without processing, to the console as a System
      * message. The appendSystemMessage() uses whatever style is set as the
      * default system message color.
@@ -108,7 +110,7 @@ public class CommandProcessor {
             console.appendSystemMessage(output);
     }
     
-    /** Appends the output to the console as an Error message.
+    /** 
      * Appends the output, without processing, to the console as an Error
      * message. The appendErrorMessage() uses whatever style is set as the
      * default Error message color.
@@ -119,7 +121,7 @@ public class CommandProcessor {
             console.appendErrorMessage(output);
     }
 
-    /** Gets a String with the contents of a text file, this should be used in place of calling FileProcessor.readText()
+    /** 
      * This method interfaces with the FileProcessors readText(File) method and
      * can be used instead of importing and using FileProcessor yourself.
      * @param file The File object that you want text read from.
@@ -128,7 +130,7 @@ public class CommandProcessor {
         return com.eleet.dragonconsole.file.FileProcessor.readText(file);
     }
 
-    /** Gets a String with the contents of a text file, this should be used in place of calling FileProcessor.readText()
+    /** 
      * This method interfaces with the FileProcessors readText(File) method and
      * can be used instead of importing and using FileProcessor yourself.
      * @param filePath The path to the file, formatted as a String.
@@ -137,23 +139,35 @@ public class CommandProcessor {
         return com.eleet.dragonconsole.file.FileProcessor.readText(filePath);
     }
 
-    /** Converts all DCCCs in the given String to their ANSI equivalent.
+    /** 
      * Passes the given String to the console to convert all the DCCCs in the
      * String to their ANSI equivalent.
      * @param string The String to convert.
-     * @return Returns the String after all DCCCs have been converted into ANSI codes.
+     * @return Returns the String after all DCCCs have been converted into ANSI
+     *  codes.
      */
     public String convertToANSIColors(String string) {
         return console.convertToANSIColors(string);
     }
 
-    /** Converts all ANSI Codes in the given String to their DCCC equivalent.
+    /** 
      * Passes the given String to the console to convert all the ANSI Codes in
      * the String to their DCCC equivalent.
      * @param string The String to convert.
-     * @return Returns the String after all ANSI Codes have been converted into DCCCs.
+     * @return Returns the String after all ANSI Codes have been converted into
+     *  DCCCs.
      */
     public String convertToDCColors(String string) {
         return console.convertToDCColors(string);
+    }
+
+    /**
+     * Allows the programmer to get access to the DragonConsole object in the
+     * CommandProcessor.
+     * @return Returns the DragonConsole that this CommandProcessor is
+     *  registered to.
+     */
+    protected DragonConsole getConsole() {
+        return console;
     }
 }
