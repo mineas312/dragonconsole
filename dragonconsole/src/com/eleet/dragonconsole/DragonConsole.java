@@ -111,7 +111,7 @@ public class DragonConsole extends JPanel implements KeyListener,
     /** 
      * Minor Change/Bug Fix number, does not include additional features.
      */
-    private static final String BUG_FIX = "1";
+    private static final String BUG_FIX = "2";
 
     /**
      * The Version Tag is "b" for Beta or "a" for Alpha, if it's a full release
@@ -1538,6 +1538,9 @@ public class DragonConsole extends JPanel implements KeyListener,
             }
         }
 
+        if (e.getKeyCode() == KeyEvent.VK_TAB)
+            e.consume();
+
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (!ignoreInput) {
                 if (useInlineInput) {
@@ -1567,7 +1570,7 @@ public class DragonConsole extends JPanel implements KeyListener,
                         addPreviousEntry(input);
 
                     } else {
-                        inputArea.append("\n\r");
+                        inputArea.append("\n");
                     }
                 }
             }

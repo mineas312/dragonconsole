@@ -159,7 +159,7 @@ public class ANSI {
             char foreground = DCCode.charAt(0);
             char background = DCCode.charAt(1);
             
-            String code = ESCAPE + "[";
+            String code = ESCAPE + "[0;";
 
             if (foreground == '0')
                 code += "0";
@@ -185,7 +185,7 @@ public class ANSI {
                 }
             }
 
-            if (code.charAt(code.length() - 1) != '[')
+            if (code.charAt(code.length() - 1) != ';')
                 code += ";";
 
             if (background == '0')
@@ -215,8 +215,8 @@ public class ANSI {
             if (code.charAt(code.length() - 1) == ';')
                 code = code.substring(0, code.length() - 1);
 
-            if (code.equals(ESCAPE + "["))
-                return "";
+            if (code.equals(ESCAPE + "[0;"))
+                return ESCAPE + "[39;49m";
             else
                 return code + "m";
         }
