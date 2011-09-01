@@ -98,8 +98,10 @@ public class DemoProcessor extends CommandProcessor {
                     } else if (cmd[1].equals("off")) {
                         getConsole().setUseANSIColorCodes(false);
                         outputSystem("\n\nANSI Color Codes are now off.");
-                    }
-                }
+                    } else
+                        outputSystem("\n\nValid arguments for ANSI are ON and OFF.");
+                } else
+                    outputSystem("\n\nValid arguments for ANSI are ON and OFF.");
             } else if (cmd[0].equals("demo")) {
                 if (cmd.length > 1 && cmd[1].equals("input")) {
                     if (cmd.length > 2 && cmd[2].equals("ranged")) {
@@ -133,12 +135,40 @@ public class DemoProcessor extends CommandProcessor {
 
             } else if (cmd[0].equals("exit"))
                 System.exit(0);
+            else if (cmd[0].equals("help"))
+                outputHelp();
             else
                 outputSystem("\n\nYou must enter a command! Valid commands are INFO, LICENSE, DEMO, ANSI, and EXIT");
         }
 
         if (!inputDemo)
             output("\n\n&ob>>&00 ");
+    }
+    
+    /**
+     * Displays a help menu with available output options for the user to view.
+     */
+    public void outputHelp() {
+        String help = "\n\n&c--- &X-Dragon&x-Console &c-" + getConsole().getVersion() 
+                + " ---------------\n"
+                + "   &w-INFO &o-View information on certain topics.\n"
+                + "   &w-   EX: INFO COLORS\n"
+                + "   LICENSE &o-View the License for DragonConsole or it's"
+                + "default font.\n"
+                + "         &w-EX: LICENSE DRAGONCONSOLE\n"
+                + "   ANSI &o- Enable or Disable ANSI codes (this will alos"
+                + " enable/disable DCCCs\n"
+                + "         &w-EX: ANSI ON\n"
+                + "                ANSI OFF\n"
+                + "   &w-DEMO &o-Demo the different input methods (ranged and" 
+                + "infinite) as well as protected \n"
+                + "           and unprotected.\n"
+                + "   &w-   EX: DEMO INPUT RANGED\n          "
+                + "DEMO INPUT RANGED PROTECTED\n"
+                + "   EXIT &o-Quits the demonstration program\n"
+                + "&c----------------------------------------";
+        
+        output(help);
     }
 
     /**

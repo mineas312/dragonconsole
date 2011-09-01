@@ -576,7 +576,7 @@ public class DragonConsole extends JPanel implements KeyListener,
      * automatically update to the new max value after the text has been added.
      * If it's moved from the max value by the user then it will stay at
      * whatever value it was placed at by the user.
-     * @param alwaysKeepScrollBarMaxed The boolean value determining the method
+     * @param alwaysScrollMax The boolean value determining the method
      *  on how to control the Vertical JScrollBar.
      */
     public void setKeepScrollBarMax(boolean alwaysScrollMax) {

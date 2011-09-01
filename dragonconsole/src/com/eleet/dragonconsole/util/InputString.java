@@ -168,7 +168,7 @@ public class InputString {
 
     /**
      * Returns the contents of this InputString as a String.
-     * @return
+     * @return The contents of the InputString as a String object.
      */
     public String get() {
         return this.s;
